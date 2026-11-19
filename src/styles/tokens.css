@@ -1,0 +1,310 @@
+/* ==========================================================================
+   Mist · design tokens
+   One source of truth for the shadow UI, the page skin and the prototype.
+   Colours are OKLCH so lightness stays perceptually even across the scale.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---- Canvas / surfaces -------------------------------------------------
+     Light is not pure white: a 2% grey keeps hairlines visible and stops
+     the retina "glow" that pure #fff pages get on OLED laptops.          */
+  --mist-canvas: oklch(0.982 0.002 255);
+  --mist-canvas-sunken: oklch(0.957 0.003 255);
+  --mist-surface: oklch(0.995 0.001 255);
+  --mist-surface-raised: oklch(1 0 0);
+  --mist-surface-sunken: oklch(0.968 0.003 255);
+  --mist-fill: oklch(0.945 0.003 255);
+  --mist-fill-strong: oklch(0.915 0.004 255);
+
+  /* ---- Text ------------------------------------------------------------- */
+  --mist-text: oklch(0.235 0.006 265);
+  --mist-text-secondary: oklch(0.48 0.008 265);
+  --mist-text-tertiary: oklch(0.63 0.008 265);
+  --mist-text-quaternary: oklch(0.74 0.006 265);
+  --mist-text-inverse: oklch(0.99 0 0);
+
+  /* ---- Lines ------------------------------------------------------------
+     0.5px hairlines: the retina detail that separates "web page" from
+     "native chrome". Always paired with a 1px fallback for 1x displays.  */
+  --mist-hairline: oklch(0 0 0 / 9%);
+  --mist-hairline-strong: oklch(0 0 0 / 16%);
+  --mist-hairline-soft: oklch(0 0 0 / 5%);
+
+  /* ---- Tint (accent) ----------------------------------------------------
+     Default is "mist": a desaturated blue-grey. Tints only colour
+     interaction states, never large surfaces.                            */
+  --mist-tint: oklch(0.56 0.09 255);
+  --mist-tint-hover: oklch(0.5 0.1 255);
+  --mist-tint-soft: oklch(0.56 0.09 255 / 12%);
+  --mist-tint-contrast: oklch(0.99 0 0);
+
+  /* ---- Interaction colours (borrowed from X, tuned to Apple palettes) --- */
+  --mist-action-comment: oklch(0.6 0.13 250);
+  --mist-action-repost: oklch(0.62 0.13 158);
+  --mist-action-like: oklch(0.63 0.19 12);
+  --mist-action-like-soft: oklch(0.63 0.19 12 / 12%);
+  --mist-action-comment-soft: oklch(0.6 0.13 250 / 12%);
+  --mist-action-repost-soft: oklch(0.62 0.13 158 / 12%);
+  --mist-danger: oklch(0.58 0.19 25);
+  --mist-positive: oklch(0.6 0.13 155);
+  --mist-warn: oklch(0.7 0.14 75);
+
+  /* ---- Liquid glass ------------------------------------------------------
+     Four layers make glass read as glass: a tinted blur, a bright inner
+     rim, an outer 0.5px ring and a soft ambient drop.                     */
+  --mist-glass-bg: oklch(1 0 0 / 64%);
+  --mist-glass-bg-strong: oklch(1 0 0 / 82%);
+  --mist-glass-border: oklch(1 0 0 / 55%);
+  --mist-glass-ring: oklch(0 0 0 / 6%);
+  --mist-glass-highlight: oklch(1 0 0 / 70%);
+  --mist-glass-blur: 28px;
+  --mist-glass-saturation: 180%;
+  --mist-glass-shadow: 0 1px 1px oklch(0 0 0 / 3%), 0 8px 24px -12px oklch(0 0 0 / 18%);
+
+  /* ---- Elevation --------------------------------------------------------
+     Layered, low-contrast. No single heavy drop shadow anywhere.          */
+  --mist-shadow-hairline: 0 0 0 0.5px var(--mist-hairline);
+  --mist-shadow-ambient: 0 1px 2px oklch(0 0 0 / 4%), 0 12px 32px -20px oklch(0 0 0 / 22%);
+  --mist-shadow-float: 0 2px 6px oklch(0 0 0 / 5%), 0 18px 48px -18px oklch(0 0 0 / 24%);
+  --mist-shadow-sheet: 0 1px 2px oklch(0 0 0 / 6%), 0 32px 80px -24px oklch(0 0 0 / 32%);
+
+  /* ---- Geometry --------------------------------------------------------- */
+  --mist-radius-xs: 6px;
+  --mist-radius-sm: 10px;
+  --mist-radius-md: 14px;
+  --mist-radius-lg: 18px;
+  --mist-radius-xl: 24px;
+  --mist-radius-2xl: 30px;
+  --mist-radius-pill: 999px;
+
+  --mist-space-1: 2px;
+  --mist-space-2: 4px;
+  --mist-space-3: 8px;
+  --mist-space-4: 12px;
+  --mist-space-5: 16px;
+  --mist-space-6: 20px;
+  --mist-space-7: 24px;
+  --mist-space-8: 32px;
+  --mist-space-9: 40px;
+  --mist-space-10: 56px;
+
+  /* ---- Type ------------------------------------------------------------- */
+  --mist-font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+  --mist-font-serif: 'New York', 'Songti SC', 'Source Han Serif SC', 'Noto Serif SC', Georgia, serif;
+  --mist-font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', 'PingFang SC', system-ui, sans-serif;
+  --mist-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Code', Menlo, monospace;
+
+  --mist-text-display: 28px;
+  --mist-text-title: 22px;
+  --mist-text-headline: 17px;
+  --mist-text-body: 15px;
+  --mist-text-callout: 14px;
+  --mist-text-subhead: 13px;
+  --mist-text-footnote: 12px;
+  --mist-text-caption: 11px;
+
+  --mist-tracking-display: -0.022em;
+  --mist-tracking-title: -0.016em;
+  --mist-tracking-headline: -0.01em;
+  --mist-tracking-body: 0.006em;
+
+  /* user-adjustable reading settings, written by the content script */
+  --mist-reading-size: 15px;
+  --mist-reading-leading: 1.6;
+  --mist-reading-weight: 400;
+
+  /* ---- Motion -----------------------------------------------------------
+     Apple-like spring approximated with a fast-out curve; nothing bounces
+     longer than a thumb can follow.                                      */
+  --mist-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --mist-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --mist-duration-fast: 140ms;
+  --mist-duration: 240ms;
+  --mist-duration-slow: 420ms;
+
+  /* ---- Layout ----------------------------------------------------------- */
+  --mist-rail-width: 248px;
+  --mist-rail-collapsed: 76px;
+  --mist-feed-width: 624px;
+  --mist-aside-width: 336px;
+  --mist-gutter: 24px;
+  --mist-header-height: 53px;
+  --mist-topbar-height: 0px;
+
+  /* ---- Layout maths ------------------------------------------------------
+     The stage is the viewport minus the rail. The column is a feed + aside
+     pair centred in the stage, and --mist-feed-left is the single number the
+     native page and the shell both align to.                              */
+  --mist-stage-left: var(--mist-rail-width);
+  --mist-column-width: calc(var(--mist-feed-width) + var(--mist-aside-width) + var(--mist-gutter) * 2);
+  --mist-feed-left: calc(
+    var(--mist-stage-left) +
+      (100vw - var(--mist-stage-left) - var(--mist-column-width)) / 2 +
+      var(--mist-gutter)
+  );
+  --mist-feed-shift: 0px;
+}
+
+/* The rail can collapse, and the aside can be switched off; both change
+   where the feed starts, so both feed the same two variables. */
+:root[data-mist-rail='collapsed'] {
+  --mist-stage-left: var(--mist-rail-collapsed);
+}
+:root[data-mist-aside='false'] {
+  --mist-column-width: calc(var(--mist-feed-width) + var(--mist-gutter) * 2);
+}
+
+@media (max-width: 1240px) {
+  :root {
+    --mist-column-width: calc(var(--mist-feed-width) + var(--mist-gutter) * 2);
+  }
+}
+
+/* ---- Dark --------------------------------------------------------------- */
+:root[data-mist-theme='dark'] {
+  color-scheme: dark;
+
+  --mist-canvas: oklch(0.175 0.004 265);
+  --mist-canvas-sunken: oklch(0.145 0.004 265);
+  --mist-surface: oklch(0.213 0.005 265);
+  --mist-surface-raised: oklch(0.243 0.006 265);
+  --mist-surface-sunken: oklch(0.193 0.004 265);
+  --mist-fill: oklch(0.263 0.006 265);
+  --mist-fill-strong: oklch(0.315 0.007 265);
+
+  --mist-text: oklch(0.955 0.003 265);
+  --mist-text-secondary: oklch(0.73 0.006 265);
+  --mist-text-tertiary: oklch(0.6 0.007 265);
+  --mist-text-quaternary: oklch(0.47 0.006 265);
+  --mist-text-inverse: oklch(0.15 0 0);
+
+  --mist-hairline: oklch(1 0 0 / 10%);
+  --mist-hairline-strong: oklch(1 0 0 / 18%);
+  --mist-hairline-soft: oklch(1 0 0 / 6%);
+
+  --mist-tint: oklch(0.74 0.1 250);
+  --mist-tint-hover: oklch(0.8 0.1 250);
+  --mist-tint-soft: oklch(0.74 0.1 250 / 16%);
+  --mist-tint-contrast: oklch(0.16 0.01 255);
+
+  --mist-glass-bg: oklch(0.24 0.006 265 / 62%);
+  --mist-glass-bg-strong: oklch(0.25 0.006 265 / 84%);
+  --mist-glass-border: oklch(1 0 0 / 12%);
+  --mist-glass-ring: oklch(0 0 0 / 25%);
+  --mist-glass-highlight: oklch(1 0 0 / 14%);
+  --mist-glass-shadow: 0 1px 1px oklch(0 0 0 / 25%), 0 10px 30px -14px oklch(0 0 0 / 55%);
+
+  --mist-shadow-hairline: 0 0 0 0.5px var(--mist-hairline);
+  --mist-shadow-ambient: 0 1px 2px oklch(0 0 0 / 30%), 0 16px 36px -22px oklch(0 0 0 / 60%);
+  --mist-shadow-float: 0 2px 8px oklch(0 0 0 / 35%), 0 22px 56px -20px oklch(0 0 0 / 65%);
+  --mist-shadow-sheet: 0 1px 2px oklch(0 0 0 / 35%), 0 40px 90px -28px oklch(0 0 0 / 70%);
+}
+
+/* ---- Tints --------------------------------------------------------------
+   Only the accent, never the canvas, changes with the tint.             */
+:root[data-mist-tint='graphite'] {
+  --mist-tint: oklch(0.52 0.008 265);
+  --mist-tint-hover: oklch(0.45 0.008 265);
+  --mist-tint-soft: oklch(0.52 0.008 265 / 12%);
+}
+:root[data-mist-tint='sand'] {
+  --mist-tint: oklch(0.62 0.08 68);
+  --mist-tint-hover: oklch(0.56 0.09 68);
+  --mist-tint-soft: oklch(0.62 0.08 68 / 13%);
+}
+:root[data-mist-tint='salt'] {
+  --mist-tint: oklch(0.6 0.08 195);
+  --mist-tint-hover: oklch(0.54 0.09 195);
+  --mist-tint-soft: oklch(0.6 0.08 195 / 13%);
+}
+:root[data-mist-tint='dusk'] {
+  --mist-tint: oklch(0.58 0.11 300);
+  --mist-tint-hover: oklch(0.52 0.12 300);
+  --mist-tint-soft: oklch(0.58 0.11 300 / 13%);
+}
+:root[data-mist-theme='dark'][data-mist-tint='graphite'] {
+  --mist-tint: oklch(0.78 0.008 265);
+  --mist-tint-hover: oklch(0.86 0.008 265);
+  --mist-tint-soft: oklch(0.78 0.008 265 / 18%);
+}
+:root[data-mist-theme='dark'][data-mist-tint='sand'] {
+  --mist-tint: oklch(0.79 0.07 70);
+  --mist-tint-hover: oklch(0.86 0.07 70);
+  --mist-tint-soft: oklch(0.79 0.07 70 / 18%);
+}
+:root[data-mist-theme='dark'][data-mist-tint='salt'] {
+  --mist-tint: oklch(0.79 0.07 195);
+  --mist-tint-hover: oklch(0.86 0.07 195);
+  --mist-tint-soft: oklch(0.79 0.07 195 / 18%);
+}
+:root[data-mist-theme='dark'][data-mist-tint='dusk'] {
+  --mist-tint: oklch(0.78 0.09 300);
+  --mist-tint-hover: oklch(0.85 0.09 300);
+  --mist-tint-soft: oklch(0.78 0.09 300 / 18%);
+}
+
+/* ---- Reading prefs ------------------------------------------------------ */
+:root[data-mist-font='serif'] {
+  --mist-font-ui: var(--mist-font-serif);
+}
+:root[data-mist-font='rounded'] {
+  --mist-font-ui: var(--mist-font-rounded);
+}
+
+/* ---- Glass strength ----------------------------------------------------- */
+:root[data-mist-glass='off'] {
+  --mist-glass-blur: 0px;
+  --mist-glass-bg: var(--mist-surface);
+  --mist-glass-bg-strong: var(--mist-surface);
+  --mist-glass-border: transparent;
+  --mist-glass-highlight: transparent;
+  --mist-glass-shadow: var(--mist-shadow-hairline);
+}
+:root[data-mist-glass='strong'] {
+  --mist-glass-blur: 40px;
+  --mist-glass-bg: oklch(1 0 0 / 52%);
+  --mist-glass-bg-strong: oklch(1 0 0 / 72%);
+}
+:root[data-mist-theme='dark'][data-mist-glass='strong'] {
+  --mist-glass-bg: oklch(0.24 0.006 265 / 50%);
+  --mist-glass-bg-strong: oklch(0.25 0.006 265 / 74%);
+}
+
+/* ---- Motion availability ------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --mist-duration-fast: 1ms;
+    --mist-duration: 1ms;
+    --mist-duration-slow: 1ms;
+    --mist-ease: linear;
+    --mist-ease-out: linear;
+  }
+}
+
+/* ---- Shared primitives -------------------------------------------------- */
+.mist-hairline {
+  border-block-end: 1px solid var(--mist-hairline);
+}
+
+.mist-glass {
+  background: var(--mist-glass-bg);
+  -webkit-backdrop-filter: blur(var(--mist-glass-blur)) saturate(var(--mist-glass-saturation));
+  backdrop-filter: blur(var(--mist-glass-blur)) saturate(var(--mist-glass-saturation));
+  border: 0.5px solid var(--mist-glass-border);
+  box-shadow: inset 0 0.5px 0 var(--mist-glass-highlight), var(--mist-glass-shadow);
+}
+
+.mist-focus-ring {
+  outline: none;
+}
+.mist-focus-ring:focus-visible {
+  box-shadow: 0 0 0 3px var(--mist-tint-soft), 0 0 0 1px var(--mist-tint);
+}
+
+.mist-numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}

@@ -1,0 +1,18 @@
+{
+  "appName": {
+    "message": "Mist · Calm Weibo",
+    "description": "Extension name shown in the Chrome Web Store, the toolbar and chrome://extensions."
+  },
+  "appDesc": {
+    "message": "Weibo redrawn as a quiet sheet of paper: an X-like three-column stage, Apple-flavoured typography and liquid glass — with the ads and the noise swept away.",
+    "description": "Store summary, 132 characters max."
+  },
+  "actionTitle": {
+    "message": "Mist · Open the command palette",
+    "description": "Toolbar button tooltip."
+  },
+  "commandPalette": {
+    "message": "Open the Mist command palette",
+    "description": "Description of the keyboard shortcut on chrome://extensions/shortcuts."
+  }
+}

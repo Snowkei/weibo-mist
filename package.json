@@ -1,0 +1,30 @@
+{
+  "name": "weibo-mist",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mist · 雾微博 — Apple-flavoured, calm redesign of weibo.com (Chrome / Edge extension)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:demo": "node scripts/build.mjs --demo",
+    "dev": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.mjs",
+    "zip": "node scripts/zip.mjs",
+    "shots": "node scripts/screenshot.mjs",
+    "check": "npm run typecheck && npm run test && npm run build"
+  },
+  "dependencies": {
+    "preact": "^10.27.2"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.25.12",
+    "typescript": "^5.9.3"
+  }
+}

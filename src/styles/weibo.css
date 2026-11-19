@@ -1,0 +1,462 @@
+/* ==========================================================================
+   Mist · weibo.com skin
+   This file fights an existing design, so it is deliberately conservative:
+   every rule is gated behind html[data-mist] and every destructive rule sits
+   behind a user-facing switch (data-mist-hide-*, data-mist-layout-*).
+   If a selector does not match, nothing breaks — the page keeps working.
+   ========================================================================== */
+
+@import './tokens.css';
+
+/* ---- layout maths -------------------------------------------------------
+   The numbers themselves live in tokens.css so the shell, the demo and the
+   skin cannot disagree. This file only spends them.                       */
+html[data-mist] {
+  scroll-behavior: smooth;
+}
+
+html[data-mist] body {
+  background: var(--mist-canvas) !important;
+  color: var(--mist-text);
+  font-family: var(--mist-font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html[data-mist] ::selection {
+  background: var(--mist-tint-soft);
+  color: var(--mist-text);
+}
+
+/* Skeleton: the shell renders over the page, so the page only needs to stop
+   painting its own chrome while Mist boots. */
+html[data-mist]:not([data-mist-booted]) body {
+  background: var(--mist-canvas) !important;
+}
+
+/* ---- theme switching ---------------------------------------------------- */
+html[data-mist][data-mist-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* ---- chrome removal ----------------------------------------------------- */
+/* Top bar, client-download banner, footer, floating widgets, the entire
+   legacy right column. Each group maps to a switch in the settings sheet. */
+
+html[data-mist] #pl_top,
+html[data-mist] .WB_top_frame,
+html[data-mist] #top_nav,
+html[data-mist] .gn_header,
+html[data-mist] .woo-header,
+html[data-mist] [class*='TopNav_'],
+html[data-mist] [class*='HeaderNav_'] {
+  display: none !important;
+}
+
+html[data-mist][data-mist-hide-promos='true'] #v6_pl_rightmod_rank,
+html[data-mist][data-mist-hide-promos='true'] #v6_pl_rightmod_myfocus,
+html[data-mist][data-mist-hide-promos='true'] [id^='v6_pl_rightmod'],
+html[data-mist][data-mist-hide-promos='true'] .WB_global_nav,
+html[data-mist][data-mist-hide-promos='true'] [class*='RightSide'],
+html[data-mist][data-mist-hide-promos='true'] [class*='rightSide'] {
+  display: none !important;
+}
+
+html[data-mist][data-mist-hide-client='true'] [class*='download'],
+html[data-mist][data-mist-hide-client='true'] [class*='Download'],
+html[data-mist][data-mist-hide-client='true'] [class*='openApp'],
+html[data-mist][data-mist-hide-client='true'] #v6_pl_rightmod_focus,
+html[data-mist][data-mist-hide-client='true'] [class*='OpenApp'] {
+  display: none !important;
+}
+
+html[data-mist][data-mist-hide-ads='true'] [ad],
+html[data-mist][data-mist-hide-ads='true'] [data-ad],
+html[data-mist][data-mist-hide-ads='true'] [class*='promotion'],
+html[data-mist][data-mist-hide-ads='true'] [class*='Promotion'],
+html[data-mist][data-mist-hide-ads='true'] [class*='advert'],
+html[data-mist][data-mist-hide-ads='true'] [class*='Advert'],
+html[data-mist][data-mist-hide-ads='true'] [class*='feedAd'],
+html[data-mist][data-mist-hide-ads='true'] [data-mist-ad='true'] {
+  display: none !important;
+}
+
+html[data-mist][data-mist-hide-suggested='true'] [data-mist-suggested='true'],
+html[data-mist][data-mist-hide-suggested='true'] [class*='recommendFollow'],
+html[data-mist][data-mist-hide-suggested='true'] .card9,
+html[data-mist][data-mist-hide-suggested='true'] [class*='RecommendUser'] {
+  display: none !important;
+}
+
+/* Floating "back to top", customer-service bubbles and activity balloons. */
+html[data-mist] #rocket-to-top,
+html[data-mist] .woo-float-btn,
+html[data-mist] .W_gotop,
+html[data-mist] [class*='GoTop'],
+html[data-mist] [class*='FloatBtn'],
+html[data-mist] [class*='SideBar_'] {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Native timeline → Mist column
+   We do not replace the DOM, we re-dress it: same nodes, same handlers.
+   ========================================================================== */
+
+html[data-mist][data-mist-layout='true'] .WB_frame,
+html[data-mist][data-mist-layout='true'] #pl_content_homeFeed,
+html[data-mist][data-mist-layout='true'] #pl_feedlist_index,
+html[data-mist][data-mist-layout='true'] .WB_main,
+html[data-mist][data-mist-layout='true'] .woo-frame {
+  width: var(--mist-feed-width) !important;
+  max-width: var(--mist-feed-width) !important;
+  margin-inline-start: calc(var(--mist-feed-left) + var(--mist-feed-shift)) !important;
+  margin-inline-end: auto !important;
+  padding-inline: 0 !important;
+  background: transparent !important;
+}
+
+/* The feed head is ours; native content starts underneath it. */
+html[data-mist][data-mist-layout='true'] #pl_content_homeFeed,
+html[data-mist][data-mist-layout='true'] #pl_feedlist_index {
+  padding-block-start: calc(var(--mist-header-height) + var(--mist-space-4) * 2) !important;
+}
+
+/* Cards: flatten the box, keep the content grid. */
+html[data-mist] .card-wrap,
+html[data-mist] article.WB_cardwrap,
+html[data-mist] [action-type='feed_list_item'] {
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-block-end: 1px solid var(--mist-hairline) !important;
+  padding: var(--mist-space-5) 0 !important;
+  transition: background var(--mist-duration-fast) var(--mist-ease);
+}
+
+html[data-mist] .card-wrap:hover,
+html[data-mist] article.WB_cardwrap:hover {
+  background: color-mix(in oklab, var(--mist-fill) 40%, transparent) !important;
+  border-radius: var(--mist-radius-lg) !important;
+}
+
+/* A hairline-free first card: the header already separates it. */
+html[data-mist] .card-wrap:first-child,
+html[data-mist] article.WB_cardwrap:first-child {
+  border-block-start: 0 !important;
+}
+
+/* Author row */
+html[data-mist] .WB_info,
+html[data-mist] .WB_face,
+html[data-mist] .avator {
+  border-radius: var(--mist-radius-pill) !important;
+}
+html[data-mist] .WB_face,
+html[data-mist] .avator {
+  overflow: hidden;
+  box-shadow: 0 0 0 0.5px var(--mist-hairline);
+}
+html[data-mist] .WB_info a,
+html[data-mist] .WB_name {
+  color: var(--mist-text) !important;
+  font-size: var(--mist-text-callout) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.006em;
+}
+html[data-mist] .WB_from,
+html[data-mist] .WB_from a,
+html[data-mist] .WB_time {
+  color: var(--mist-text-tertiary) !important;
+  font-size: var(--mist-text-subhead) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Body copy */
+html[data-mist] .WB_text,
+html[data-mist] .detail_wbtext,
+html[data-mist] .WB_text_opt {
+  color: var(--mist-text) !important;
+  font-family: var(--mist-font-ui) !important;
+  font-size: var(--mist-reading-size) !important;
+  line-height: var(--mist-reading-leading) !important;
+  font-weight: var(--mist-reading-weight) !important;
+  letter-spacing: 0.006em;
+  text-wrap: pretty;
+}
+
+html[data-mist] .WB_text a,
+html[data-mist] .WB_text .a_topic,
+html[data-mist] .WB_text .a_at {
+  color: var(--mist-tint) !important;
+}
+
+html[data-mist] .WB_text img.face,
+html[data-mist] .WB_text .emoticon {
+  vertical-align: -2px;
+  border-radius: 4px;
+}
+
+/* Expand affordance: same hit area, quieter type. */
+html[data-mist] .WB_text .WB_text_opt,
+html[data-mist] a[action-type='feed_list_expand'],
+html[data-mist] .expand {
+  color: var(--mist-tint) !important;
+  font-size: var(--mist-text-subhead) !important;
+}
+
+/* Media */
+html[data-mist] .WB_media_wrap,
+html[data-mist] .media_box,
+html[data-mist] .WB_media_a {
+  border-radius: var(--mist-radius-lg) !important;
+  overflow: hidden !important;
+  background: var(--mist-fill) !important;
+  box-shadow: 0 0 0 0.5px var(--mist-hairline) !important;
+  gap: 2px !important;
+}
+html[data-mist] .WB_media_a li,
+html[data-mist] .WB_media_a .li {
+  background: var(--mist-fill) !important;
+}
+html[data-mist] .WB_media_a img,
+html[data-mist] .media_box img {
+  border-radius: 0 !important;
+  object-fit: cover;
+}
+
+/* Quoted / reposted post: nested surface, no coloured left border. */
+html[data-mist] .WB_feed_expand,
+html[data-mist] .WB_expand,
+html[data-mist] .comment,
+html[data-mist] .WB_quote {
+  margin-block-start: var(--mist-space-4) !important;
+  padding: var(--mist-space-4) !important;
+  border: 0 !important;
+  border-radius: var(--mist-radius-md) !important;
+  background: var(--mist-surface-sunken) !important;
+}
+
+/* Action row */
+html[data-mist] .WB_feed_handle,
+html[data-mist] .WB_handle,
+html[data-mist] .WB_feed_handle .WB_handle,
+html[data-mist] .woo-like-handle {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-block-start: var(--mist-space-3) !important;
+}
+
+html[data-mist] .WB_handle li,
+html[data-mist] .WB_handle .pos {
+  color: var(--mist-text-tertiary) !important;
+  font-size: var(--mist-text-subhead) !important;
+}
+
+html[data-mist] .WB_handle li:hover,
+html[data-mist] .WB_handle a:hover {
+  color: var(--mist-tint) !important;
+}
+
+/* Toolbar buttons become icon-sized ghosts. */
+html[data-mist] .WB_handle .woo-like,
+html[data-mist] .WB_handle .toolbar_btn,
+html[data-mist] .WB_handle a {
+  border: 0 !important;
+  background: transparent !important;
+  border-radius: var(--mist-radius-pill) !important;
+  padding: 4px 8px !important;
+  transition:
+    background var(--mist-duration-fast) var(--mist-ease),
+    color var(--mist-duration-fast) var(--mist-ease) !important;
+}
+
+/* Native forms and dropdowns inherit our type + dark mode. */
+html[data-mist] input,
+html[data-mist] textarea {
+  font-family: var(--mist-font-ui);
+}
+html[data-mist] .W_input,
+html[data-mist] .input_wrap,
+html[data-mist] .woo-input {
+  border-radius: var(--mist-radius-md) !important;
+  border-color: var(--mist-hairline-strong) !important;
+  background: var(--mist-surface) !important;
+  color: var(--mist-text) !important;
+}
+
+/* Native popovers / tooltips: match the language of the shell. */
+html[data-mist] .woo-pop,
+html[data-mist] .W_layer,
+html[data-mist] .layer_menu_list,
+html[data-mist] [class*='Popover_'] {
+  border-radius: var(--mist-radius-md) !important;
+  background: var(--mist-surface-raised) !important;
+  border: 0.5px solid var(--mist-hairline) !important;
+  box-shadow: var(--mist-shadow-float) !important;
+  color: var(--mist-text) !important;
+}
+
+/* Dark mode has to cover what weibo hardcodes in light colours. */
+html[data-mist][data-mist-theme='dark'] body,
+html[data-mist][data-mist-theme='dark'] #pl_content_homeFeed,
+html[data-mist][data-mist-theme='dark'] .WB_frame,
+html[data-mist][data-mist-theme='dark'] .WB_main,
+html[data-mist][data-mist-theme='dark'] .card-wrap,
+html[data-mist][data-mist-theme='dark'] .WB_feed {
+  background: var(--mist-canvas) !important;
+}
+
+html[data-mist][data-mist-theme='dark'] .WB_text,
+html[data-mist][data-mist-theme='dark'] .WB_info a,
+html[data-mist][data-mist-theme='dark'] .WB_name,
+html[data-mist][data-mist-theme='dark'] .WB_from a {
+  color: var(--mist-text) !important;
+}
+
+html[data-mist][data-mist-theme='dark'] .WB_feed_expand,
+html[data-mist][data-mist-theme='dark'] .WB_expand,
+html[data-mist][data-mist-theme='dark'] .comment {
+  background: var(--mist-surface-sunken) !important;
+}
+
+html[data-mist][data-mist-theme='dark'] .WB_handle li,
+html[data-mist][data-mist-theme='dark'] .WB_handle a {
+  color: var(--mist-text-secondary) !important;
+}
+
+/* ==========================================================================
+   Reading preferences applied to the native feed
+   ========================================================================== */
+
+html[data-mist] {
+  font-size: var(--mist-reading-size);
+}
+
+html[data-mist] .WB_text {
+  font-size: var(--mist-reading-size) !important;
+  line-height: var(--mist-reading-leading) !important;
+  font-weight: var(--mist-reading-weight) !important;
+}
+
+/* Long posts: full text by default, clamped only when asked. */
+html[data-mist][data-mist-clamp='true'] .WB_text[data-mist-long='true'] {
+  display: -webkit-box;
+  -webkit-line-clamp: 14;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* "Focused card" — everything else recedes while you read one post. */
+html[data-mist][data-mist-focus='true'] .card-wrap:not([data-mist-focus]) ,
+html[data-mist][data-mist-focus='true'] article.WB_cardwrap:not([data-mist-focus]) {
+  opacity: 0.55;
+  filter: saturate(0.85);
+  transition:
+    opacity var(--mist-duration) var(--mist-ease),
+    filter var(--mist-duration) var(--mist-ease);
+}
+
+html[data-mist] .card-wrap,
+html[data-mist] article.WB_cardwrap {
+  transition:
+    background var(--mist-duration-fast) var(--mist-ease),
+    opacity var(--mist-duration) var(--mist-ease);
+}
+
+/* Reading mode: hide every distraction, keep the type. */
+html[data-mist][data-mist-reading='true'] .WB_handle,
+html[data-mist][data-mist-reading='true'] .WB_feed_handle,
+html[data-mist][data-mist-reading='true'] [class*='Toolbar_'],
+html[data-mist][data-mist-reading='true'] [class*='toolbar'],
+html[data-mist][data-mist-reading='true'] .card-wrap:not([data-mist-focus]) {
+  display: none !important;
+}
+html[data-mist][data-mist-reading='true'] .card-wrap[data-mist-focus] {
+  margin-inline: auto !important;
+  max-width: var(--mist-feed-width) !important;
+  padding-block: var(--mist-space-7) !important;
+  border: 0 !important;
+}
+html[data-mist][data-mist-reading='true'] .WB_text {
+  font-family: var(--mist-font-serif) !important;
+  font-size: calc(var(--mist-reading-size) + 2px) !important;
+  line-height: 1.72 !important;
+}
+
+/* Autoplay guard marker — main-world script reads this attribute. */
+html[data-mist][data-mist-autoplay='off'] video {
+  /* nothing visual; the attribute is the contract */
+}
+
+/* ==========================================================================
+   Compatibility badge (shown only when the page structure is unknown)
+   ========================================================================== */
+
+html[data-mist] .mist-compat-note {
+  position: fixed;
+  inset-block-end: 16px;
+  inset-inline-start: calc(var(--mist-rail-collapsed) + 12px);
+  z-index: 2147482999;
+  padding: 6px 10px;
+  border-radius: var(--mist-radius-pill);
+  background: var(--mist-glass-bg-strong);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 0 0 0.5px var(--mist-hairline);
+  color: var(--mist-text-tertiary);
+  font: 500 11px/1.4 var(--mist-font-ui);
+  pointer-events: none;
+}
+
+/* Weibo's own scroll-lock classes must not fight the shell. */
+html[data-mist] body.mist-scroll-lock {
+  overflow: hidden !important;
+}
+
+/* ==========================================================================
+   Enhancer output — the DOM annotations from src/content/enhance.ts
+   ========================================================================== */
+
+/* Filtered cards stay in the DOM (weibo's own paging wants them) but cost
+   nothing to paint. */
+html[data-mist] [data-mist-hidden='true'] {
+  display: none !important;
+}
+
+/* Off-screen cards skip layout + paint entirely. This is what makes a feed
+   with 400 cached cards scroll like one with 40. */
+html[data-mist] [data-mist-item='true'] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 340px;
+}
+
+/* View tabs: 全部 / 图文 / 长文 / 视频 */
+html[data-mist][data-mist-view='text'] [data-mist-kind='video'],
+html[data-mist][data-mist-view='long'] [data-mist-kind='image'],
+html[data-mist][data-mist-view='long'] [data-mist-kind='text'],
+html[data-mist][data-mist-view='long'] [data-mist-kind='video'],
+html[data-mist][data-mist-view='video'] [data-mist-kind='text'],
+html[data-mist][data-mist-view='video'] [data-mist-kind='image'],
+html[data-mist][data-mist-view='video'] [data-mist-kind='long'] {
+  display: none !important;
+}
+
+/* Clamped long post: quiet fade instead of weibo's "展开全文" jump. */
+html[data-mist][data-mist-clamp='true'] .WB_text[data-mist-long='true'] {
+  position: relative;
+  cursor: pointer;
+}
+html[data-mist][data-mist-clamp='true'] .WB_text[data-mist-long='true']:not([data-mist-open])::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 3.5em;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--mist-canvas) 78%);
+}

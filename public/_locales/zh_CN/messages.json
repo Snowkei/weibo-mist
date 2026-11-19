@@ -1,0 +1,18 @@
+{
+  "appName": {
+    "message": "Mist · 雾微博",
+    "description": "Extension name shown in the Chrome Web Store, the toolbar and chrome://extensions."
+  },
+  "appDesc": {
+    "message": "把微博重画成一张安静的纸：X 式三栏、苹果式排版与液态玻璃，顺手清掉广告和噪音。",
+    "description": "Store summary, 132 characters max."
+  },
+  "actionTitle": {
+    "message": "Mist · 打开命令面板",
+    "description": "Toolbar button tooltip."
+  },
+  "commandPalette": {
+    "message": "打开 Mist 命令面板",
+    "description": "Description of the keyboard shortcut on chrome://extensions/shortcuts."
+  }
+}

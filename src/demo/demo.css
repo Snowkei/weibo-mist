@@ -1,0 +1,191 @@
+/* ==========================================================================
+   Demo page: real skin, hand-built feed.
+   The three imports below are the production files, unmodified — the demo is
+   only a stage plus the markup weibo.com would have produced.
+   ========================================================================== */
+
+@import '../styles/tokens.css';
+@import '../styles/weibo.css';
+@import '../styles/shell.css';
+
+html[data-mist] body {
+  margin: 0;
+  background: var(--mist-canvas);
+  color: var(--mist-text);
+}
+
+.demo-stage {
+  inline-size: min(var(--mist-feed-width), calc(100vw - 48px));
+  max-inline-size: var(--mist-feed-width);
+  margin-inline-start: calc(var(--mist-feed-left) + var(--mist-gutter));
+  padding-block: calc(var(--mist-header-height) + 40px) 140px;
+}
+
+.demo-feed {
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-head {
+  padding-block-end: var(--mist-space-6);
+  border-block-end: 1px solid var(--mist-hairline);
+}
+.demo-head h1 {
+  margin: 0 0 6px;
+  font: 600 26px/1.2 var(--mist-font-serif);
+  letter-spacing: -0.02em;
+  color: var(--mist-text);
+}
+.demo-head p {
+  margin: 0;
+  color: var(--mist-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* --- weibo card anatomy, rebuilt without weibo's stylesheet -------------- */
+
+.demo-feed .card-wrap {
+  padding-inline: var(--mist-space-4);
+  margin-block-end: 0;
+}
+.demo-feed .card-wrap:hover {
+  border-radius: var(--mist-radius-lg);
+}
+.WB_feed_detail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--mist-space-4);
+}
+.WB_face {
+  align-self: start;
+  inline-size: 44px;
+  block-size: 44px;
+  flex: none;
+}
+.WB_face img {
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 999px;
+  display: block;
+  box-shadow: 0 0 0 0.5px var(--mist-hairline);
+}
+.WB_detail {
+  min-inline-size: 0;
+}
+.WB_name {
+  color: var(--mist-text);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.WB_from {
+  margin-block-start: 2px;
+  color: var(--mist-text-tertiary);
+  font-size: 12px;
+}
+.WB_text {
+  margin-block-start: 6px;
+  color: var(--mist-text);
+  font-size: var(--mist-reading-size);
+  line-height: var(--mist-reading-leading);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.WB_text + .WB_text {
+  margin-block-start: 10px;
+}
+
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--mist-tint) 12%, transparent);
+  color: var(--mist-tint);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+.WB_media_wrap {
+  margin-block-start: var(--mist-space-3);
+}
+.WB_media_a {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+}
+.WB_media_a img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+.WB_media_a[data-count='1'] img {
+  block-size: 330px;
+}
+.WB_media_a[data-count='2'] {
+  grid-template-columns: 1fr 1fr;
+}
+.WB_media_a[data-count='2'] img {
+  block-size: 232px;
+}
+.WB_media_a[data-count='3'] {
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  block-size: 300px;
+}
+.WB_media_a[data-count='3'] li:first-child {
+  grid-row: span 2;
+}
+
+.WB_feed_expand {
+  margin-block-start: var(--mist-space-3);
+  padding: var(--mist-space-3) var(--mist-space-4);
+  border-radius: var(--mist-radius-md);
+  background: var(--mist-surface-sunken);
+}
+.WB_feed_expand .WB_text {
+  margin-block-start: 4px;
+  font-size: 14px;
+  color: var(--mist-text-secondary);
+}
+
+.WB_feed_handle {
+  margin-block-start: var(--mist-space-3);
+}
+.WB_handle {
+  display: flex;
+  gap: var(--mist-space-6);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.WB_handle a {
+  color: var(--mist-text-tertiary);
+  font-size: 12px;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.WB_handle a:hover {
+  color: var(--mist-tint);
+}
+
+.demo-foot {
+  padding-block: 48px 24px;
+  color: var(--mist-text-quaternary);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .demo-stage {
+    margin-inline: auto;
+    padding-block-start: 84px;
+  }
+}
