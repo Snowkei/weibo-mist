@@ -124,7 +124,24 @@ try {
   check('content script booted', /data-mist-booted="true"/.test(html))
   check('page skin gate on (<html data-mist>)', /<html[^>]*\sdata-mist[\s=>]/.test(html))
   check('shell mounted', html.includes('id="mist-root"'))
-  check('layout offset on, not double-applied', /data-mist-layout="true"/.test(html))
+  check('stage took the page over', /data-mist-staged="true"/.test(html))
+  check('timeline moved into #mist-feed', (() => {
+    const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''
+    return /moved=yes/.test(title)
+  })())
+  check('column is 624px wide', /feed=400\+624/.test(html.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''), html.match(/<title>([^<]*)<\/title>/)?.[1] ?? 'no probe')
+
+  const title = html.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''
+  const isHidden = (sel) => new RegExp(`${sel.replace(/[.#]/g, '\\$&')}:no`).test(title)
+  const isVisible = (sel) => new RegExp(`${sel.replace(/[.#]/g, '\\$&')}:yes`).test(title)
+
+  check('native top nav hidden', isHidden('.gn_header'), title)
+  check('native side column hidden', isHidden('#side'), title)
+  check('native right rail hidden', isHidden('#right'), title)
+  check('native composer hidden', isHidden('.compose-box'), title)
+  check('native tabs hidden', isHidden('.feed-tabs'), title)
+  check('floating widgets hidden', isHidden('#rocket'), title)
+  check('dialog stays visible', isVisible('#wbox'), title)
 
   const cards = [...html.matchAll(/<div class="card-wrap"[^>]*>/g)].map((m) => m[0])
   check('fixture exposes 4 cards', cards.length === 4, `saw ${cards.length}`)

@@ -326,6 +326,16 @@ a {
    Centre column: header + aside
    ========================================================================== */
 
+:host([data-mist-feedless='true']) .m-column {
+  display: none;
+}
+
+/* Without a timeline the rail is the only thing worth keeping: it still gives
+   the user a way back, and the native page stays readable underneath. */
+:host([data-mist-feedless='true']) .m-rail {
+  pointer-events: auto;
+}
+
 .m-column {
   position: fixed;
   inset-block-start: 0;

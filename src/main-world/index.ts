@@ -15,11 +15,16 @@ const ORIGIN = location.origin
 interface BridgeRequest {
   __mist?: boolean
   kind?: string
-  id?: string
+  id?: number
 }
 
-function reply(id: string | undefined, data: unknown): void {
-  window.postMessage({ __mist: true, kind: 'reply', id, data }, ORIGIN)
+/**
+ * The reply shape is the contract in src/content/bridge.ts: `ok` decides
+ * whether the payload is trusted, `payload` carries it. Getting this wrong
+ * fails silently — the panel just says "读取失败".
+ */
+function reply(id: number | undefined, payload: unknown): void {
+  window.postMessage({ __mist: true, kind: 'reply', id, ok: payload !== null, payload }, ORIGIN)
 }
 
 async function getJson(path: string): Promise<unknown> {
@@ -31,17 +36,31 @@ async function getJson(path: string): Promise<unknown> {
   return response.json()
 }
 
-async function hotSearch(id?: string): Promise<void> {
-  try {
-    const json = (await getJson('/ajax/side/hotSearch')) as { data?: { realtime?: unknown[] } }
-    reply(id, { realtime: json.data?.realtime ?? [] })
-  } catch (error) {
-    console.warn('[mist] hot search unavailable', error)
-    reply(id, null)
+const HOT_ENDPOINTS = [
+  '/ajax/side/hotSearch',
+  '/ajax/statuses/hot_band',
+  '/ajax/side/search/hot_band',
+]
+
+async function hotSearch(id?: number): Promise<void> {
+  for (const path of HOT_ENDPOINTS) {
+    try {
+      const json = (await getJson(path)) as {
+        data?: { realtime?: unknown[]; band_list?: unknown[]; hotgov?: unknown }
+      }
+      const list = json.data?.realtime ?? json.data?.band_list ?? []
+      if (Array.isArray(list) && list.length > 0) {
+        reply(id, { realtime: list })
+        return
+      }
+    } catch (error) {
+      console.warn('[mist] hot search endpoint failed', path, error)
+    }
   }
+  reply(id, null)
 }
 
-async function profile(id?: string): Promise<void> {
+async function profile(id?: number): Promise<void> {
   try {
     const json = (await getJson('/ajax/profile/info')) as { data?: { user?: unknown } }
     reply(id, { user: json.data?.user ?? null })

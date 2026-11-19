@@ -29,6 +29,14 @@ const SUGGEST_LABELS = new Set(['推荐', '热门', '猜你喜欢', '为你推�
 const EXPAND_SELECTOR = 'a[action-type="feed_list_expand"], .WB_text_opt, .txt a'
 const FAVOURITE_SELECTOR = 'a[action-type="feed_list_favorite"], [title*="收藏"], .woo-like-handle [action-type="favorite"]'
 const COMPOSE_SELECTOR = '#homeWrap .W_input, .W_input, textarea[placeholder*="新鲜"], textarea.W_input'
+const COMPOSE_ENTRY_SELECTOR = [
+  'a[action-type="post"]',
+  '.W_btn_a[title*="发微博"]',
+  'a[href$="/share"]',
+  '[class*="compose" i] button',
+  '[class*="Compose"] button',
+  '[title="写微博"]',
+].join(',')
 
 export function createEnhancer(getSettings: () => Settings): Enhancer {
   let settings = getSettings()
@@ -193,6 +201,13 @@ export function createEnhancer(getSettings: () => Settings): Enhancer {
       return { name, meta, text, url }
     },
     compose(): boolean {
+      // The inline composer is hidden by the stage sweep, so the entry point is
+      // the native "写微博" trigger — it opens weibo's own dialog, which we keep.
+      const entry = document.querySelector<HTMLElement>(COMPOSE_ENTRY_SELECTOR)
+      if (entry) {
+        entry.click()
+        return true
+      }
       const input = document.querySelector<HTMLElement>(COMPOSE_SELECTOR)
       if (!input) return false
       input.scrollIntoView({ block: 'center', behavior: 'smooth' })

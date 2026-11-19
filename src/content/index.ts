@@ -12,12 +12,14 @@ import { applySettings, type Settings } from '../shared/settings'
 import { loadSettings, onSettingsChange, saveSettings } from '../shared/store'
 import { createEnhancer, type Enhancer } from './enhance'
 import { Shell } from './shell'
+import { createStage } from './stage'
 import { closePalette, closeSheet, openPalette, openSheet, runtime, toast, ui } from './state'
 
 const HOST_ID = 'mist-root'
 const SCROLL_PREFIX = 'mist.scroll:'
 
 let enhancer: Enhancer | null = null
+let stageHandle: ReturnType<typeof createStage> | null = null
 let settings: Settings
 
 /**
@@ -252,13 +254,32 @@ async function main(): Promise<void> {
   document.documentElement.setAttribute('data-mist-booted', 'true')
 
   runtime.host = 'weibo'
+  // Order matters: the stage moves the timeline into our column *before* the
+  // enhancer annotates it, so the cards are already where they will live.
   enhancer = createEnhancer(() => settings)
   runtime.api = enhancer
 
+  if (settings.layout) {
+    const stage = createStage()
+    if (stage.organize()) {
+      stageHandle = stage
+    }
+  }
+
   onSettingsChange((next) => {
+    const layoutChanged = next.layout !== settings.layout
     settings = next
     applySettings(next)
     applySettings(next, host)
+    if (layoutChanged) {
+      if (next.layout && !stageHandle) {
+        const stage = createStage()
+        if (stage.organize()) stageHandle = stage
+      } else if (!next.layout && stageHandle) {
+        stageHandle.destroy()
+        stageHandle = null
+      }
+    }
     enhancer?.refresh(next)
   })
 
@@ -280,7 +301,14 @@ async function main(): Promise<void> {
     })
   }
 
-  window.addEventListener('pagehide', () => enhancer?.destroy(), { once: true })
+  window.addEventListener(
+    'pagehide',
+    () => {
+      enhancer?.destroy()
+      stageHandle?.destroy()
+    },
+    { once: true },
+  )
   console.info(`[mist] shell ready · ${__MIST_VERSION__}`)
 }
 

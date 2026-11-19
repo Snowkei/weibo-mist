@@ -99,45 +99,98 @@ html[data-mist] [class*='SideBar_'] {
 }
 
 /* ==========================================================================
-   Native timeline → Mist column
-   We do not replace the DOM, we re-dress it: same nodes, same handlers.
+   Stage: the only piece of weibo that survives
+   The timeline list is moved into #mist-feed and everything else is hidden, so
+   these rules are about a column, not about matching weibo's wrappers.
    ========================================================================== */
 
-/* Every native wrapper becomes a plain 624px column with no margins of its
-   own. On weibo these containers are nested (frame > homeFeed > feedlist), so
-   the offset must be applied to exactly one of them — otherwise the column
-   walks off to the right by one rail width per level. */
-html[data-mist][data-mist-layout='true'] .WB_frame,
-html[data-mist][data-mist-layout='true'] .woo-frame,
-html[data-mist][data-mist-layout='true'] #pl_content_homeFeed,
-html[data-mist][data-mist-layout='true'] #pl_feedlist_index,
-html[data-mist][data-mist-layout='true'] .WB_main {
-  width: min(100%, var(--mist-feed-width)) !important;
-  max-width: var(--mist-feed-width) !important;
-  margin-inline-start: 0 !important;
-  margin-inline-end: 0 !important;
+html[data-mist-staged='true'] [data-mist-swept='true'] {
+  display: none !important;
+}
+
+html[data-mist] {
+  height: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  background: var(--mist-canvas) !important;
+}
+
+html[data-mist] body {
+  height: auto !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: var(--mist-canvas) !important;
+}
+
+html[data-mist] #mist-stage {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 100vh;
+}
+
+html[data-mist] #mist-feed {
+  box-sizing: border-box;
+  inline-size: var(--mist-feed-width);
+  max-inline-size: calc(100vw - 32px);
+  margin-inline-start: max(0px, var(--mist-feed-left));
+  /* Clears the floating feed head; the tail leaves room for the last card. */
+  padding-block: calc(var(--mist-header-height) + var(--mist-space-4) * 2) 120px;
+}
+
+/* Whatever container weibo handed us becomes a plain, full-width column. */
+html[data-mist] #mist-feed > *,
+html[data-mist] #mist-feed > * > * {
+  inline-size: 100% !important;
+  max-inline-size: none !important;
+  min-inline-size: 0 !important;
+  margin-inline: 0 !important;
   padding-inline: 0 !important;
   background: transparent !important;
+  box-shadow: none !important;
 }
 
-/* The outermost wrapper carries the offset. */
-html[data-mist][data-mist-layout='true'] .WB_frame,
-html[data-mist][data-mist-layout='true'] .woo-frame {
-  margin-inline-start: calc(var(--mist-feed-left) + var(--mist-feed-shift)) !important;
+/* A type floor that survives unknown markup: whatever weibo renders, it is
+   set in the same family and the same rhythm. Colours stay per-selector below,
+   because a blanket colour would flatten links, badges and emphasis. */
+html[data-mist] #mist-feed,
+html[data-mist] #mist-feed * {
+  font-family: var(--mist-font-ui) !important;
 }
 
-/* Pages without a frame wrapper: the feed container is the outermost. */
-html[data-mist][data-mist-layout='true'] body > #pl_content_homeFeed,
-html[data-mist][data-mist-layout='true'] body > .WB_main,
-html[data-mist][data-mist-layout='true'] body > #pl_feedlist_index {
-  margin-inline-start: calc(var(--mist-feed-left) + var(--mist-feed-shift)) !important;
+html[data-mist] #mist-feed {
+  font-size: 15px;
+  line-height: 1.62;
+  letter-spacing: -0.003em;
+  color: var(--mist-text);
 }
 
-/* The feed head is ours; the native list starts underneath it. Only one of
-   these is ever present, and padding on both would double the gap. */
-html[data-mist][data-mist-layout='true'] #pl_feedlist_index,
-html[data-mist][data-mist-layout='true'] .WB_main {
-  padding-block-start: calc(var(--mist-header-height) + var(--mist-space-4) * 2) !important;
+/* Even when no card class matches, the list still reads as a list: hairline
+   between entries, one vertical rhythm, no boxes. */
+html[data-mist] #mist-feed > * > * {
+  border-block-end: 1px solid var(--mist-hairline) !important;
+  padding-block: var(--mist-space-5) !important;
+}
+
+html[data-mist] #mist-feed > * > *:last-child,
+html[data-mist] #mist-feed > * > *:empty {
+  border-block-end: 0 !important;
+}
+
+/* Feed-internal chrome that belongs to the shell now (its own tabs, the
+   "new posts" pill, the composer) — hidden by structure, not by name. */
+html[data-mist] #mist-feed > * > [class*='tab' i],
+html[data-mist] #mist-feed > * > [class*='Tab'],
+html[data-mist] #mist-feed > * > [class*='compose' i],
+html[data-mist] #mist-feed > * > [class*='Compose'] {
+  display: none !important;
+}
+
+/* Dialogs stay reachable: they are the only part of the native UI we keep,
+   because writing a post still needs weibo's own editor. */
+html[data-mist] [data-mist-overlay='true'] {
+  font-family: var(--mist-font-ui);
 }
 
 /* Cards: flatten the box, keep the content grid. */

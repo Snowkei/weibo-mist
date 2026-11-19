@@ -42,19 +42,31 @@ function ensureListener(): void {
   })
 }
 
+/**
+ * Ask the MAIN world something. Both scripts are injected at document_start and
+ * their order is not guaranteed, so a first request can land before the page
+ * world installed its listener — hence one silent retry.
+ */
 export function ask<T>(kind: BridgeKind, timeout = 4000): Promise<T | null> {
   if (typeof window === 'undefined') return Promise.resolve(null)
   ensureListener()
-  const id = ++seq
+
   return new Promise<T | null>((resolve) => {
-    pending.set(id, (payload) => resolve(payload as T | null))
-    const request: BridgeRequest = { __mist: true, kind, id }
-    window.postMessage(request, window.location.origin)
-    window.setTimeout(() => {
-      if (!pending.has(id)) return
-      pending.delete(id)
-      resolve(null)
-    }, timeout)
+    const send = (delayBefore: number): void => {
+      const id = ++seq
+      window.setTimeout(() => {
+        pending.set(id, (payload) => resolve(payload as T | null))
+        const request: BridgeRequest = { __mist: true, kind, id }
+        window.postMessage(request, window.location.origin)
+      }, delayBefore)
+      window.setTimeout(() => {
+        if (!pending.has(id)) return
+        pending.delete(id)
+        if (delayBefore === 0) send(700)
+        else resolve(null)
+      }, delayBefore === 0 ? Math.min(1200, timeout / 2) : timeout)
+    }
+    send(0)
   })
 }
 

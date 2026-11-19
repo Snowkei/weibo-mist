@@ -1,45 +1,138 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8">
-<title>Mist fixture · 时间线镜像</title>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Mist fixture · 微博外壳镜像</title>
 <!-- weibo.css + content.js are copied next to this file by scripts/smoke.mjs -->
 <link rel="stylesheet" href="weibo.css">
 <style>
-  body{margin:0;font:15px/1.6 -apple-system,sans-serif;background:#fff}
-  .WB_frame{width:1000px;margin:0 auto}
-  .card-wrap{border-bottom:1px solid #eee;padding:16px;display:flex;gap:12px}
-  .WB_face{width:44px;height:44px;border-radius:50%;background:#dfe6ef;flex:none;display:grid;place-items:center}
-  .WB_text{margin:6px 0;color:#222}
-  .WB_from a{color:#888;font-size:12px;text-decoration:none}
-  .WB_handle{display:flex;gap:16px;font-size:12px;color:#999}
-  .WB_media_wrap{margin-top:8px}
-  .WB_media_a{height:180px;background:linear-gradient(#e8eef5,#f5eee6);border-radius:8px}
-</style></head>
+  /* A deliberately weibo-shaped page: fixed top nav, a secondary side column,
+     a composer, a tab strip, the timeline list, a right rail, and a dialog that
+     must survive the sweep. Class names mirror weibo's own. */
+  body{margin:0;font:15px/1.6 -apple-system,sans-serif;background:#fff;color:#222}
+  .gn_header{position:fixed;top:0;left:0;right:0;height:60px;background:#fff;border-bottom:1px solid #eee;z-index:1000}
+  .WB_frame{display:flex;gap:20px;width:1200px;margin:80px auto 0;padding-bottom:200px}
+  .WB_left{width:200px;flex:none}
+  .WB_left .group{color:#eb7350;font-weight:600;margin:18px 0 6px}
+  .WB_left li{list-style:none;color:#555;padding:4px 0}
+  #pl_content_homeFeed{flex:1;min-width:0}
+  .compose-box{height:120px;border:1px solid #eee;border-radius:8px;padding:14px;color:#999}
+  .feed-tabs{display:flex;gap:22px;margin:16px 0;color:#333;font-weight:600}
+  .WB_right{width:300px;flex:none}
+  .WB_right .panel{height:160px;border:1px solid #eee;border-radius:8px;margin-bottom:16px;color:#888;padding:10px}
+  .card-wrap{border-bottom:1px solid #eee;padding:18px 0;display:flex;gap:12px}
+  .WB_face{width:44px;height:44px;border-radius:50%;background:#dfe6ef;flex:none;display:grid;place-items:center;align-self:start}
+  .WB_detail{flex:1;min-width:0}
+  .WB_info a{font-weight:600;color:#333;text-decoration:none}
+  .WB_from{color:#999;font-size:12px}
+  .WB_from a{color:#999;text-decoration:none}
+  .WB_text{margin:8px 0;color:#222}
+  .WB_media_wrap{margin-top:10px}
+  .WB_media_a{height:190px;background:linear-gradient(#e8eef5,#f5eee6);border-radius:8px}
+  .WB_handle{display:flex;gap:26px;font-size:12px;color:#999;list-style:none;padding:0;margin:12px 0 0}
+  .WB_handle a{color:#999;text-decoration:none}
+  #wbox{position:fixed;inset:auto;top:20%;left:50%;transform:translateX(-50%);width:520px;padding:24px;background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.2);z-index:9999}
+  #rocket{position:fixed;right:20px;bottom:20px;width:40px;height:40px;border-radius:50%;background:#eee;z-index:500}
+</style>
+</head>
 <body>
-<div class="WB_frame"><div id="pl_feedlist_index">
-  <div class="card-wrap" action-type="feed_list_item" mid="1001"><div class="WB_face">甲</div><div class="WB_detail">
-    <div class="WB_info"><a class="W_f14">甲用户</a></div>
-    <div class="WB_from"><a href="https://weibo.com/1/ABC123">3 分钟前</a></div>
-    <div class="WB_text">第一条：把这一周读的东西拢一拢。信息过载从来不是信息太多，而是筛子太粗。</div>
-    <div class="WB_handle"><a action-type="feed_list_item favorite" title="收藏">收藏</a><span>转发 18</span><span>评论 42</span></div>
-  </div></div>
-  <div class="card-wrap" action-type="feed_list_item" mid="1002" adid="ad_9"><div class="WB_face">广</div><div class="WB_detail">
-    <div class="WB_info"><a class="W_f14">广告主</a><span>广告</span></div>
-    <div class="WB_from"><a href="https://weibo.com/2/AD">刚刚</a></div>
-    <div class="WB_text">这条是广告，应该被隐藏。</div>
-  </div></div>
-  <div class="card-wrap" action-type="feed_list_item" mid="1003"><div class="WB_face">乙</div><div class="WB_detail">
-    <div class="WB_info"><a class="W_f14">乙用户</a><span>推荐</span></div>
-    <div class="WB_from"><a href="https://weibo.com/3/XYZ">12 分钟前</a></div>
-    <div class="WB_text">这条是推荐，默认也应该被隐藏。带一张图。</div>
-    <div class="WB_media_wrap"><div class="WB_media_a"></div></div>
-  </div></div>
-  <div class="card-wrap" action-type="feed_list_item" mid="1004"><div class="WB_face">丙</div><div class="WB_detail">
-    <div class="WB_info"><a class="W_f14">丙用户</a></div>
-    <div class="WB_from"><a href="https://weibo.com/4/LONG">28 分钟前</a></div>
-    <div class="WB_text">这条是长文，带「展开全文」。把手机架在树上拍了四十分钟，剪出十七秒。</div>
-    <div class="WB_text WB_text_opt"><a action-type="feed_list_expand">展开全文</a></div>
-  </div></div>
-</div></div>
-<script src="content.js"></script>
+<div class="gn_header">搜索微博 · 无障碍</div>
 
-</body></html>
+<div class="WB_frame">
+  <div class="WB_left" id="side">
+    <div class="group">首页</div>
+    <ul>
+      <li>全部关注</li>
+      <li>最新微博</li>
+      <li>特别关注</li>
+      <li>好友圈</li>
+    </ul>
+    <div class="group">自定义分组</div>
+    <ul><li>小说</li><li>美女</li><li>游戏</li></ul>
+  </div>
+
+  <div id="pl_content_homeFeed">
+    <div class="compose-box">有什么新鲜事想分享给大家？</div>
+    <div class="feed-tabs"><span>全部</span><span>原创</span><span>视频</span><span>超话社区</span></div>
+
+    <div id="pl_feedlist_index">
+      <div class="card-wrap" action-type="feed_list_item" mid="1001">
+        <div class="WB_face">甲</div>
+        <div class="WB_detail">
+          <div class="WB_info"><a class="W_f14">甲用户</a></div>
+          <div class="WB_from">3 分钟前 来自 iPhone</div>
+          <div class="WB_text">第一条：把这一周读的东西拢一拢。信息过载从来不是「信息太多」，而是「筛子太粗」。</div>
+          <ul class="WB_handle"><li><a href="#">收藏</a></li><li><a href="#">转发 18</a></li><li><a href="#">评论 42</a></li></ul>
+        </div>
+      </div>
+
+      <div class="card-wrap" action-type="feed_list_item" mid="1002" adid="ad_9">
+        <div class="WB_face">广</div>
+        <div class="WB_detail">
+          <div class="WB_info"><a class="W_f14">广告主广告</a></div>
+          <div class="WB_from">刚刚</div>
+          <div class="WB_text">这条是广告，应该被隐藏。</div>
+        </div>
+      </div>
+
+      <div class="card-wrap" action-type="feed_list_item" mid="1003">
+        <div class="WB_face">乙</div>
+        <div class="WB_detail">
+          <div class="WB_info"><a class="W_f14">乙用户推荐</a><span>推荐</span></div>
+          <div class="WB_from">12 分钟前</div>
+          <div class="WB_text">这条是推荐，默认也应该被隐藏。带一张图。</div>
+          <div class="WB_media_wrap"><div class="WB_media_a"></div></div>
+        </div>
+      </div>
+
+      <div class="card-wrap" action-type="feed_list_item" mid="1004">
+        <div class="WB_face">丙</div>
+        <div class="WB_detail">
+          <div class="WB_info"><a class="W_f14">丙用户</a></div>
+          <div class="WB_from">28 分钟前</div>
+          <div class="WB_text">这条是长文，带「展开全文」。把手机架在树上拍了四十分钟，剪出十七秒。</div>
+          <div class="WB_text_opt"><a href="#" action-type="feed_list_expand">展开全文</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="WB_right" id="right">
+    <div class="panel">热搜榜</div>
+    <div class="panel">会员入口</div>
+  </div>
+</div>
+
+<div id="wbox" role="dialog">发微博对话框（必须保留）</div>
+<div id="rocket"></div>
+
+<script>
+  // Geometry probe: smoke.mjs reads it back out of the dumped <title>.
+  setTimeout(() => {
+    const feed = document.getElementById('mist-feed')
+    const stage = document.getElementById('mist-stage')
+    const card = document.querySelector('.card-wrap')
+    const rect = (el) => (el ? `${Math.round(el.getBoundingClientRect().left)}+${Math.round(el.getBoundingClientRect().width)}` : 'none')
+    document.title = [
+      'stage=' + (stage ? 'yes' : 'no'),
+      'feed=' + rect(feed),
+      'card=' + rect(card),
+      'moved=' + (feed && card && feed.contains(card) ? 'yes' : 'no'),
+      // `display` of a child inside a `display:none` ancestor still reports its
+      // own value, so ask the layout engine whether the box is really painted.
+      'visible=' + ['#side', '#right', '.gn_header', '.compose-box', '.feed-tabs', '#rocket', '#wbox']
+        .map((sel) => {
+          const el = document.querySelector(sel)
+          if (!el) return sel + ':gone'
+          const shown = typeof el.checkVisibility === 'function'
+            ? el.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true })
+            : el.getBoundingClientRect().width > 0
+          return sel + ':' + (shown ? 'yes' : 'no')
+        })
+        .join(','),
+    ].join(' | ')
+  }, 1600)
+</script>
+<script src="content.js"></script>
+</body>
+</html>
