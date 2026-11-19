@@ -198,10 +198,12 @@ export function createStage(): Stage {
     if (!document.body) return false
     const root = findFeedRoot()
     if (!root) {
-      // Not a timeline (messages, settings, a profile without a feed yet).
-      // Undo our takeover so weibo's own page is usable, and hide our column.
+      // The timeline may simply not be painted yet (weibo hydrates late), or
+      // this route has no timeline at all. Keep watching either way — a later
+      // mutation will call organize() again — and park the center column.
       if (organized) unstage()
       setFeedless(true)
+      watch()
       return false
     }
     setFeedless(false)
