@@ -72,7 +72,7 @@ DOM、登录态与全部交互，只在它上面重新排一次版、重新上�
 
 ### 从 release 安装
 
-1. 下载 `release/mist-0.1.0.zip` 并解压；
+1. 下载 [Releases](https://github.com/Snowkei/weibo-mist/releases/latest) 里的 `mist-0.1.0.zip` 并解压；
 2. `chrome://extensions` → 打开「开发者模式」→「加载已解压的扩展程序」→ 选择解压出的目录；
 3. 打开 <https://weibo.com>，页面会重排成 Mist。
 

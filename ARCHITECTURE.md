@@ -72,7 +72,7 @@ Settings ──settingsToAttributes()──▶ html[data-mist-theme] html[data-m
 
 CSS 里没有任何 JS 逻辑的镜像：`html[data-mist][data-mist-hide-ads='true'] [data-mist-ad='true']`
 这一行就是「隐藏广告」的全部实现。好处是：调试时只要改一个属性就能验证，类型检查也能覆盖这个契约
-（`scripts/test.mjs` 里有专门的 14 键断言）。
+（`scripts/test.mjs` 里有专门的 15 键断言）。
 
 设置存 `chrome.storage.sync`（键 `mist.settings`），失败时回落到 `localStorage`；`normalizeSettings()`
 对每个字段做白名单与钳位，所以旧版本、被手改过的、类型错的值都不会污染界面。
@@ -107,8 +107,14 @@ Shadow DOM 里的样式表拿不到 `:root`，而设计令牌全部定义在 `:r
 ## 测试
 
 `scripts/test.mjs` 用 esbuild 把三个模块（settings / utils / commands）编译到临时目录后直接 import，
-断言 18 条契约：默认值、枚举白名单、钳位范围、关键词去重、14 个属性键、阅读变量、`万/亿` 格式化、
+断言 18 条契约：默认值、枚举白名单、钳位范围、关键词去重、15 个属性键、阅读变量、`万/亿` 格式化、
 `debounce` 合并、模糊搜索排序、命令 id 唯一。没有测试框架，跑完即退。
+
+`scripts/smoke.mjs` 补上单测够不到的那一半：它在临时目录里起一个静态服务器，喂
+`tests/fixture/timeline.html`（复刻 `.WB_frame > #pl_feedlist_index > .card-wrap` 的嵌套结构，含一条
+`adid` 广告与一条「推荐」），用无头 Chrome 跑**构建产物** `dist/content.js`，再从 dump 出来的 DOM 上
+断言十件事：脚本启动、`<html data-mist>` 门控、外壳挂载、布局偏移只加一次、广告与推荐卡被隐藏、
+普通卡保留、标签写入。没有浏览器时它打印一行提示后安静退出，所以 CI 不必装 Chrome。
 
 ## 失败姿态
 
