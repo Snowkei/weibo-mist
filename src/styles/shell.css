@@ -1657,3 +1657,92 @@ a {
     display: none;
   }
 }
+
+/* ------------------------------------------------------------------ composer
+   Writing a post after the page has been taken over: one calm sheet, no
+   toolbar we do not own, ⌘↵ to send. */
+
+.m-composer {
+  position: fixed;
+  z-index: 62;
+  inset-inline: 0;
+  margin-inline: auto;
+  inset-block-start: 16vh;
+  inline-size: min(560px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: var(--mist-space-3);
+  padding: var(--mist-space-5);
+  border-radius: var(--mist-radius-xl);
+  background: var(--mist-glass-strong, var(--mist-surface-raised));
+  backdrop-filter: blur(var(--mist-glass-blur-strong, 0px)) saturate(180%);
+  box-shadow: var(--mist-shadow-lift), inset 0 0 0 0.5px var(--mist-hairline-strong);
+  animation: mist-composer-in var(--mist-duration-slow) var(--mist-ease);
+}
+
+@keyframes mist-composer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.m-composer-head {
+  display: flex;
+  align-items: center;
+  gap: var(--mist-space-2);
+}
+
+.m-composer-title {
+  font-family: var(--mist-font-serif);
+  font-size: 19px;
+  letter-spacing: var(--mist-tracking-tight);
+  color: var(--mist-text);
+}
+
+.m-composer-input {
+  inline-size: 100%;
+  min-block-size: 148px;
+  resize: vertical;
+  border: 0;
+  outline: none;
+  padding: var(--mist-space-3);
+  border-radius: var(--mist-radius-md);
+  background: var(--mist-surface-sunken);
+  box-shadow: inset 0 0 0 0.5px var(--mist-hairline);
+  color: var(--mist-text);
+  font-family: var(--mist-font-ui);
+  font-size: var(--mist-reading-size, 15px);
+  line-height: var(--mist-reading-leading, 1.7);
+  transition: box-shadow var(--mist-duration-fast) var(--mist-ease);
+}
+
+.m-composer-input::placeholder {
+  color: var(--mist-text-4);
+}
+
+.m-composer-input:focus {
+  box-shadow: inset 0 0 0 1.5px var(--mist-tint);
+}
+
+.m-composer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mist-space-3);
+}
+
+.m-composer-count {
+  font-size: 12px;
+  color: var(--mist-text-4);
+  font-variant-numeric: tabular-nums;
+}
+
+.m-btn[disabled] {
+  opacity: 0.45;
+  pointer-events: none;
+}

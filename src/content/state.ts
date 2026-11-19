@@ -54,6 +54,7 @@ export interface ShellState {
   progress: number
   scrolled: boolean
   reader: ReaderPost | null
+  composer: boolean
   toasts: ToastItem[]
   hot: HotItem[]
   hotState: 'idle' | 'loading' | 'ready' | 'failed'
@@ -102,6 +103,7 @@ export const ui = createStore<ShellState>({
   progress: 0,
   scrolled: false,
   reader: null,
+  composer: false,
   toasts: [],
   hot: [],
   hotState: 'idle',

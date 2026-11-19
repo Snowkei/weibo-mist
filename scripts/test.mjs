@@ -37,6 +37,7 @@ try {
       settings: 'src/shared/settings.ts',
       utils: 'src/shared/utils.ts',
       commands: 'src/content/commands.ts',
+      feed: 'src/content/feed.ts',
     },
     bundle: true,
     format: 'esm',
@@ -51,10 +52,12 @@ try {
   const settingsMod = await import(pathToFileURL(path.join(outdir, 'settings.mjs')).href)
   const utilsMod = await import(pathToFileURL(path.join(outdir, 'utils.mjs')).href)
   const commandsMod = await import(pathToFileURL(path.join(outdir, 'commands.mjs')).href)
+  const feedMod = await import(pathToFileURL(path.join(outdir, 'feed.mjs')).href)
 
   const { DEFAULT_SETTINGS, normalizeSettings, settingsToAttributes, settingsToVariables, resolveTheme } = settingsMod
   const { cx, formatCount, escapeHtml, debounce } = utilsMod
   const { buildCommands, filterCommands, fuzzyScore, searchCommand } = commandsMod
+  const { formatTime, adaptStatus } = feedMod
 
   process.stdout.write('\nsettings\n')
 
@@ -199,6 +202,41 @@ try {
     const row = searchCommand('液态玻璃')
     assert.ok(row.title.includes('液态玻璃'))
     assert.equal(row.group, '导航')
+  })
+  process.stdout.write('\nfeed adapters\n')
+
+  test('weibo time strings become relative labels', () => {
+    const now = Date.parse('2026-11-19T12:00:00+08:00')
+    assert.equal(formatTime('Thu Nov 19 11:59:30 +0800 2026', now), '1 分钟前')
+    assert.equal(formatTime('Thu Nov 19 09:00:00 +0800 2026', now), '3 小时前')
+    assert.equal(formatTime('Thu Nov 14 18:08:17 +0800 2024', now), '2024-11-14')
+    assert.equal(formatTime(undefined), '')
+  })
+
+  test('a raw status flattens into a post', () => {
+    const post = adaptStatus({
+      id: 1,
+      idstr: '1',
+      mblogid: 'N1',
+      created_at: 'Thu Nov 14 18:08:17 +0800 2024',
+      text: '正文 <a href="/n/x">@某人</a>',
+      user: { screen_name: '海边', verified: true },
+      attitudes_count: 12,
+      comments_count: 3,
+      reposts_count: 1,
+      attitudes_status: 1,
+      pic_ids: ['p1'],
+      pic_infos: { p1: { largest: { url: 'http://img/1.jpg' } } },
+    })
+    assert.equal(post.author.name, '海边')
+    assert.equal(post.stats.likes, 12)
+    assert.equal(post.liked, true)
+    assert.equal(post.images[0].large, 'https://img/1.jpg')
+    assert.ok(post.html.includes('@某人'))
+  })
+
+  test('a status without an id is dropped', () => {
+    assert.equal(adaptStatus({ text: 'x' }), null)
   })
 } finally {
   await rm(outdir, { recursive: true, force: true })

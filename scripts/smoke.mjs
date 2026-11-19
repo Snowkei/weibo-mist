@@ -20,6 +20,7 @@ import { extname, join } from 'node:path'
 const ROOT = new URL('..', import.meta.url).pathname
 const DIST = join(ROOT, 'dist')
 const FIXTURE = join(ROOT, 'tests', 'fixture', 'timeline.html')
+const HOME_FIXTURE = join(ROOT, 'tests', 'fixture', 'home', 'index.html')
 
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
@@ -53,10 +54,10 @@ async function locateChrome() {
   return null
 }
 
-async function serve(dir) {
+async function serve(dir, entry = 'timeline.html') {
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', 'http://127.0.0.1')
-    const file = join(dir, url.pathname === '/' ? 'timeline.html' : url.pathname)
+    const file = join(dir, url.pathname === '/' ? entry : url.pathname)
     const stream = createReadStream(file)
     stream.on('error', () => {
       res.writeHead(404).end('not found')
@@ -79,7 +80,7 @@ function dump(chrome, url) {
         '--headless=new',
         '--disable-gpu',
         '--no-first-run',
-        '--virtual-time-budget=3500',
+        '--virtual-time-budget=5000',
         '--window-size=1512,982',
         '--dump-dom',
         url,
@@ -119,7 +120,9 @@ try {
   await cp(join(DIST, 'content.js'), join(work, 'content.js'))
   await cp(join(DIST, 'weibo.css'), join(work, 'weibo.css'))
 
-  const html = await dump(chrome, `${server.origin}/?mist-dev=1`)
+  // Native-mode fixture lives at a non-home path: `/` is reserved for the
+  // data-mode fixture, since that is the route the home feed owns.
+  const html = await dump(chrome, `${server.origin}/timeline.html?mist-dev=1`)
 
   check('content script booted', /data-mist-booted="true"/.test(html))
   check('page skin gate on (<html data-mist>)', /<html[^>]*\sdata-mist[\s=>]/.test(html))
@@ -154,6 +157,42 @@ try {
   check('tags recorded for filtering', cards.some((tag) => tag.includes('data-mist-tags="promoted"')))
 
   check('enhancer counted the feed', /data-mist-view="all"/.test(html))
+
+  /* ---------------------------------------------------------------- data mode
+     The home route no longer moves weibo's list: the feed is drawn from
+     `/ajax/feed/*` JSON by our own components. This phase feeds canned JSON to
+     the real MAIN-world bridge and checks what actually got rendered. */
+
+  const work2 = await mkdtemp(join(tmpdir(), 'mist-smoke-data-'))
+  let server2 = null
+  try {
+    await cp(HOME_FIXTURE, join(work2, 'index.html'))
+    for (const file of ['content.js', 'main-world.js', 'weibo.css']) {
+      await cp(join(DIST, file), join(work2, file))
+    }
+    server2 = await serve(work2, 'index.html')
+    const page = await dump(chrome, `${server2.origin}/?mist-dev=1`)
+    const count = (pattern) => (page.match(pattern) ?? []).length
+
+    check('data mode: content script booted', /data-mist-booted="true"/.test(page))
+    check('data mode: stage took the page over', /data-mist-staged="true"/.test(page))
+    check('data mode: shell mounted', page.includes('id="mist-root"'))
+    check('data mode: native header swept', /id="fake-header"[^>]*data-mist-swept="true"/.test(page))
+    check('data mode: native side column swept', /id="fake-side"[^>]*data-mist-swept="true"/.test(page))
+    check('data mode: native right rail swept', /id="fake-right"[^>]*data-mist-swept="true"/.test(page))
+    check('data mode: native list is not moved in', !page.includes('data-mist-feed='))
+    check('data mode: three posts rendered', count(/class="mf-card"/g) === 3, `saw ${count(/class="mf-card"/g)}`)
+    check('data mode: author name rendered', page.includes('海边'))
+    check('data mode: like count formatted', page.includes('316'))
+    check('data mode: quote block rendered', count(/class="mf-quote"/g) === 1)
+    check('data mode: two-image grid', /class="mf-media" data-count="2"/.test(page))
+    check('data mode: long text offers expand', count(/class="mf-expand"/g) === 1)
+    check('data mode: verified badge', count(/class="mf-badge"/g) === 1)
+    check('data mode: stats counted', /data-mist-stats="3"/.test(page) || page.includes('3'))
+  } finally {
+    server2?.close()
+    await rm(work2, { recursive: true, force: true })
+  }
 } finally {
   server?.close()
   await rm(work, { recursive: true, force: true })

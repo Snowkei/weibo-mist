@@ -1,4 +1,4 @@
-import { useEffect } from 'preact/hooks'
+import { useEffect, useState } from 'preact/hooks'
 import { Icon, MistMark, type IconName } from '../shared/icons'
 import { formatCount, modKey, rafThrottle } from '../shared/utils'
 import { ask, type RawHot, type RawProfile } from './bridge'
@@ -7,6 +7,8 @@ import { Palette } from './palette'
 import { Sheet } from './sheet'
 import { useSettings } from './use-settings'
 import { SAMPLE_ACCOUNT, SAMPLE_HOT } from './sample'
+import { publish } from './feed'
+import { reloadFeed } from './timeline'
 
 const VIEWS: Array<{ id: View; label: string }> = [
   { id: 'all', label: '全部' },
@@ -232,6 +234,7 @@ export function Shell() {
       {shell.reader ? <Reader /> : null}
       {shell.palette ? <Palette /> : null}
       {shell.sheet ? <Sheet /> : null}
+      {shell.composer ? <Composer /> : null}
     </div>
   )
 }
@@ -392,6 +395,71 @@ function Toasts() {
   )
 }
 
+/**
+ * Writing a post. In data mode the native composer is gone (we hid the page),
+ * so publish goes straight to `/ajax/statuses/update` — the same call the site
+ * makes, from the same session.
+ */
+function Composer() {
+  const [text, setText] = useState('')
+  const [busy, setBusy] = useState(false)
+  const close = (): void => ui.set({ composer: false })
+
+  const submit = async (): Promise<void> => {
+    const body = text.trim()
+    if (!body || busy) return
+    setBusy(true)
+    const ok = await publish(body)
+    setBusy(false)
+    if (!ok) {
+      toast('发布没有成功，可能登录已过期')
+      return
+    }
+    ui.set({ composer: false })
+    toast('已发布', 'check')
+    reloadFeed()
+  }
+
+  return (
+    <>
+      <div class="m-dim" onMouseDown={close} />
+      <div class="m-composer" role="dialog" aria-modal="true" aria-label="写微博">
+        <div class="m-composer-head">
+          <span class="m-composer-title">写微博</span>
+          <span style={{ flex: 1 }} />
+          <button type="button" class="m-icon-btn" aria-label="关闭" onClick={close}>
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+        <textarea
+          class="m-composer-input"
+          placeholder="有什么新鲜事想分享给大家？"
+          value={text}
+          maxLength={2000}
+          rows={7}
+          autofocus
+          onInput={(event) => setText(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void submit()
+          }}
+        />
+        <div class="m-composer-foot">
+          <span class="m-composer-count">{text.length} / 2000</span>
+          <button
+            type="button"
+            class="m-btn"
+            data-variant="tinted"
+            disabled={!text.trim() || busy}
+            onClick={() => void submit()}
+          >
+            {busy ? '发布中…' : '发送'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function Reader() {
   const shell = useStore(ui)
   const post = shell.reader
@@ -442,7 +510,7 @@ async function loadHot(): Promise<void> {
     return
   }
   ui.set({ hotState: 'loading' })
-  const raw = await ask<{ realtime?: RawHot[] } | RawHot[]>('hot', 5000)
+  const raw = await ask<{ realtime?: RawHot[] } | RawHot[]>('hot')
   const list = Array.isArray(raw) ? raw : (raw?.realtime ?? [])
   if (!list.length) {
     ui.set({ hotState: 'failed' })
@@ -463,7 +531,7 @@ async function loadAccount(): Promise<void> {
     ui.set({ account: SAMPLE_ACCOUNT })
     return
   }
-  const raw = await ask<{ user?: RawProfile } | RawProfile>('profile', 5000)
+  const raw = await ask<{ user?: RawProfile } | RawProfile>('profile')
   if (!raw) return
   const user = 'user' in raw && raw.user ? raw.user : (raw as RawProfile)
   if (!user.screen_name) return

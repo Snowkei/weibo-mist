@@ -1,0 +1,437 @@
+/**
+ * The feed we draw ourselves.
+ *
+ * Unlike `weibo.css` (a skin for markup we do not own), every class here has
+ * exactly one author: `timeline.tsx`. That is why there is no `!important` in
+ * this file and why the rhythm is a plain 4px grid — nothing inherited to fight.
+ *
+ * Loaded in the page (light DOM), next to `#mist-feed`.
+ */
+
+html[data-mist] .mf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-block-end: 96px;
+}
+
+html[data-mist] .mf-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+  padding: 20px 16px;
+  border-radius: var(--mist-radius-lg);
+  transition: background-color var(--mist-duration-fast) var(--mist-ease);
+  outline: none;
+}
+
+html[data-mist] .mf-card + .mf-card {
+  box-shadow: inset 0 1px 0 0 var(--mist-hairline);
+}
+
+html[data-mist] .mf-card:hover {
+  background: var(--mist-fill);
+}
+
+html[data-mist] .mf-card[data-focus='true'] {
+  background: var(--mist-fill);
+  box-shadow:
+    inset 0 1px 0 0 var(--mist-hairline),
+    inset 0 0 0 1.5px var(--mist-tint-hover);
+}
+
+html[data-mist] .mf-card[data-focus='true']::before {
+  content: '';
+  position: absolute;
+  inset-block: 20px;
+  inset-inline-start: 4px;
+  inline-size: 2px;
+  border-radius: 2px;
+  background: var(--mist-tint);
+}
+
+html[data-mist] .mf-face {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+html[data-mist] .mf-avatar {
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--mist-fill-strong);
+  box-shadow: inset 0 0 0 0.5px var(--mist-hairline-strong);
+}
+
+html[data-mist] .mf-avatar[data-empty='true'] {
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mist-text-2);
+}
+
+html[data-mist] .mf-main {
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+html[data-mist] .mf-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+html[data-mist] .mf-name {
+  font-size: 14.5px;
+  font-weight: 590;
+  color: var(--mist-text);
+  text-decoration: none;
+  letter-spacing: var(--mist-tracking-tight);
+}
+
+html[data-mist] .mf-name:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+html[data-mist] .mf-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: 50%;
+  background: var(--mist-tint);
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+html[data-mist] .mf-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mist-text-3);
+  font-size: 12.5px;
+}
+
+html[data-mist] .mf-meta > span + span::before {
+  content: '·';
+  margin-inline-end: 6px;
+  color: var(--mist-text-4);
+}
+
+html[data-mist] .mf-text {
+  font-size: var(--mist-reading-size, 15px);
+  line-height: var(--mist-reading-leading, 1.7);
+  color: var(--mist-text);
+  overflow-wrap: anywhere;
+  letter-spacing: 0.002em;
+}
+
+html[data-mist] .mf-text a {
+  color: var(--mist-tint);
+  text-decoration: none;
+}
+
+html[data-mist] .mf-text a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+html[data-mist] .mf-text .x-emoji {
+  inline-size: 18px;
+  block-size: 18px;
+  vertical-align: -4px;
+  margin-inline: 1px;
+}
+
+html[data-mist] .mf-title {
+  font-family: var(--mist-font-serif);
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--mist-text);
+  letter-spacing: var(--mist-tracking-tight);
+}
+
+html[data-mist] .mf-expand {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--mist-tint);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+html[data-mist] .mf-media {
+  display: grid;
+  gap: 2px;
+  margin-block-start: 2px;
+  border-radius: var(--mist-radius-md);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+html[data-mist] .mf-media[data-count='1'] {
+  grid-template-columns: 1fr;
+  max-block-size: 510px;
+}
+
+html[data-mist] .mf-media[data-count='2'] {
+  grid-template-columns: 1fr 1fr;
+}
+
+html[data-mist] .mf-media[data-count='3'],
+html[data-mist] .mf-media[data-count='4'] {
+  grid-template-columns: 1fr 1fr;
+}
+
+html[data-mist] .mf-media[data-count='9'],
+html[data-mist] .mf-media[data-count='6'],
+html[data-mist] .mf-media[data-count='5'],
+html[data-mist] .mf-media[data-count='7'],
+html[data-mist] .mf-media[data-count='8'] {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+html[data-mist] .mf-photo {
+  position: relative;
+  display: block;
+  border: 0;
+  padding: 0;
+  background: var(--mist-fill);
+  overflow: hidden;
+  cursor: zoom-in;
+  aspect-ratio: 4 / 3;
+}
+
+html[data-mist] .mf-media[data-count='1'] .mf-photo {
+  aspect-ratio: auto;
+}
+
+html[data-mist] .mf-photo img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--mist-duration-slow) var(--mist-ease);
+}
+
+html[data-mist] .mf-photo:hover img {
+  transform: scale(1.012);
+}
+
+html[data-mist] .mf-video {
+  position: relative;
+  border-radius: var(--mist-radius-md);
+  overflow: hidden;
+  background: #000;
+}
+
+html[data-mist] .mf-video video {
+  display: block;
+  inline-size: 100%;
+  max-block-size: 520px;
+  background: #000;
+}
+
+html[data-mist] .mf-video[data-poster='true'] video {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+html[data-mist] .mf-quote {
+  margin-block-start: 2px;
+  padding: 12px 14px;
+  border-radius: var(--mist-radius-md);
+  background: var(--mist-surface-sunken);
+  box-shadow: inset 0 0 0 0.5px var(--mist-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+html[data-mist] .mf-quote .mf-text {
+  font-size: 14px;
+  color: var(--mist-text-2);
+}
+
+html[data-mist] .mf-quote .mf-name {
+  font-size: 13.5px;
+}
+
+html[data-mist] .mf-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-block-start: 4px;
+  margin-inline-start: -6px;
+}
+
+html[data-mist] .mf-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: var(--mist-text-3);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    color var(--mist-duration-fast) var(--mist-ease),
+    background-color var(--mist-duration-fast) var(--mist-ease);
+}
+
+html[data-mist] .mf-action:hover {
+  background: var(--mist-fill);
+}
+
+html[data-mist] .mf-action[data-kind='comment']:hover {
+  color: var(--mist-action-comment);
+}
+
+html[data-mist] .mf-action[data-kind='repost']:hover {
+  color: var(--mist-action-repost);
+}
+
+html[data-mist] .mf-action[data-kind='like']:hover,
+html[data-mist] .mf-action[data-kind='like'][aria-pressed='true'] {
+  color: var(--mist-action-like);
+}
+
+html[data-mist] .mf-action[data-kind='like'][aria-pressed='true'] {
+  background: color-mix(in oklab, var(--mist-action-like) 10%, transparent);
+}
+
+html[data-mist] .mf-skeleton {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+  padding: 20px 16px;
+}
+
+html[data-mist] .mf-skeleton + .mf-skeleton {
+  box-shadow: inset 0 1px 0 0 var(--mist-hairline);
+}
+
+html[data-mist] .mf-bone {
+  border-radius: 8px;
+  background: linear-gradient(
+    100deg,
+    var(--mist-fill) 30%,
+    var(--mist-fill-strong) 50%,
+    var(--mist-fill) 70%
+  );
+  background-size: 220% 100%;
+  animation: mf-shimmer 1.5s linear infinite;
+}
+
+html[data-mist] .mf-bone[data-round='true'] {
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 50%;
+}
+
+html[data-mist] .mf-bone[data-line='true'] {
+  block-size: 12px;
+}
+
+html[data-mist] .mf-empty {
+  padding: 56px 8px;
+  text-align: center;
+  color: var(--mist-text-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+html[data-mist] .mf-empty-title {
+  font-family: var(--mist-font-serif);
+  font-size: 21px;
+  color: var(--mist-text);
+  letter-spacing: var(--mist-tracking-tight);
+}
+
+html[data-mist] .mf-retry {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--mist-fill);
+  color: var(--mist-text);
+  transition: background-color var(--mist-duration-fast) var(--mist-ease);
+}
+
+html[data-mist] .mf-retry:hover {
+  background: var(--mist-fill-strong);
+}
+
+html[data-mist] .mf-end {
+  padding: 28px 8px 40px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--mist-text-4);
+  letter-spacing: var(--mist-tracking-wide);
+}
+
+html[data-mist] .mf-sentinel {
+  block-size: 1px;
+}
+
+@keyframes mf-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-mist] .mf-bone {
+    animation: none;
+  }
+  html[data-mist] .mf-photo img {
+    transition: none;
+  }
+}
+
+/* Focus mode and clamping act on our own markup too — the settings switches
+   mean the same thing in data mode as they do on a native timeline. */
+html[data-mist][data-mist-focus='true'] .mf-card:not([data-focus='true']) {
+  opacity: 0.55;
+  filter: saturate(0.85);
+  transition:
+    opacity var(--mist-duration-slow) var(--mist-ease),
+    filter var(--mist-duration-slow) var(--mist-ease);
+}
+
+html[data-mist][data-mist-clamp='true'] .mf-card .mf-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
+  overflow: hidden;
+}
+
+html[data-mist][data-mist-clamp='true'] .mf-card .mf-text:has(+ .mf-expand) {
+  -webkit-line-clamp: 6;
+}

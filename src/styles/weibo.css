@@ -7,6 +7,7 @@
    ========================================================================== */
 
 @import './tokens.css';
+@import './feed.css';
 
 /* ---- layout maths -------------------------------------------------------
    The numbers themselves live in tokens.css so the shell, the demo and the

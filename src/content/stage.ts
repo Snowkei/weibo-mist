@@ -52,6 +52,16 @@ const OVERLAY_SELECTOR = [
 
 const KEEP_TAGS = new Set(['SCRIPT', 'STYLE', 'LINK', 'META', 'NOSCRIPT', 'TEMPLATE', 'BASE'])
 
+export interface StageOptions {
+  /**
+   * `data` skips the native list entirely: the containers are still built and
+   * the rest of the page is still hidden, but `#mist-feed` is left empty for
+   * our own renderer (`timeline.tsx`). The page's timeline is then never needed
+   * — which is the whole point of drawing the feed from the API.
+   */
+  mode?: 'native' | 'data'
+}
+
 export interface Stage {
   organize(): boolean
   destroy(): void
@@ -109,7 +119,8 @@ function hasOverlayInside(el: HTMLElement): boolean {
   return Boolean(el.querySelector(OVERLAY_SELECTOR))
 }
 
-export function createStage(): Stage {
+export function createStage(options: StageOptions = {}): Stage {
+  const dataMode = options.mode === 'data'
   let stageEl: HTMLElement | null = null
   let feedEl: HTMLElement | null = null
   let moved: { parent: Node; next: Node | null } | null = null
@@ -196,6 +207,15 @@ export function createStage(): Stage {
 
   function organize(): boolean {
     if (!document.body) return false
+    if (dataMode) {
+      ensureContainers()
+      setFeedless(false)
+      document.documentElement.setAttribute('data-mist-staged', 'true')
+      sweep(document.body, 0)
+      organized = true
+      watch()
+      return true
+    }
     const root = findFeedRoot()
     if (!root) {
       // The timeline may simply not be painted yet (weibo hydrates late), or
@@ -231,6 +251,11 @@ export function createStage(): Stage {
     pending = window.setTimeout(() => {
       pending = 0
       if (!document.body) return
+      if (dataMode) {
+        if (!document.getElementById('mist-stage')) ensureContainers()
+        sweep(document.body, 0)
+        return
+      }
       if (!findFeedRoot()) {
         misses += 1
         // Weibo clears the list while navigating; only give up after the page

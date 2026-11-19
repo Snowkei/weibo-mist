@@ -1,6 +1,6 @@
 {
   "name": "weibo-mist",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Mist · 雾微博 — Apple-flavoured, calm redesign of weibo.com (Chrome / Edge extension)",

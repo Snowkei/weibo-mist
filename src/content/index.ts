@@ -13,12 +13,14 @@ import { loadSettings, onSettingsChange, saveSettings } from '../shared/store'
 import { createEnhancer, type Enhancer } from './enhance'
 import { Shell } from './shell'
 import { createStage } from './stage'
+import { createFeedApi, mountFeed, unmountFeed } from './timeline'
 import { closePalette, closeSheet, openPalette, openSheet, runtime, toast, ui } from './state'
 
 const HOST_ID = 'mist-root'
 const SCROLL_PREFIX = 'mist.scroll:'
 
 let enhancer: Enhancer | null = null
+let dataMode = false
 let stageHandle: ReturnType<typeof createStage> | null = null
 let settings: Settings
 
@@ -118,12 +120,51 @@ function togglePalette(): void {
 }
 
 function openReader(): void {
-  const post = enhancer?.readerFromFocus()
+  const post = runtime.api?.readerFromFocus() ?? null
   if (!post) {
     toast('先把光标停在一张卡片上', 'info')
     return
   }
   ui.set({ reader: post })
+}
+
+/** Where the data-drawn timeline is allowed: the home route, nothing else. */
+function isHomeRoute(): boolean {
+  const path = window.location.pathname
+  return path === '/' || path === '' || path.startsWith('/home')
+}
+
+/**
+ * Layout on/off. On the home route the feed is *ours* (API + our components);
+ * everywhere else the native list is moved into the column instead, so pages we
+ * have no data model for keep working.
+ */
+function enterLayout(on: boolean): void {
+  if (!on) {
+    if (dataMode) {
+      unmountFeed()
+      dataMode = false
+      runtime.api = enhancer
+    }
+    stageHandle?.destroy()
+    stageHandle = null
+    return
+  }
+  if (stageHandle) return
+  if (isHomeRoute()) {
+    const stage = createStage({ mode: 'data' })
+    if (!stage.organize()) return
+    stageHandle = stage
+    const container = document.getElementById('mist-feed')
+    if (container) {
+      dataMode = true
+      runtime.api = createFeedApi()
+      mountFeed(container)
+    }
+    return
+  }
+  const stage = createStage()
+  if (stage.organize()) stageHandle = stage
 }
 
 /** Timestamp of the last plain `g`, for the `gg` jump. */
@@ -145,12 +186,17 @@ function onKeydown(event: KeyboardEvent): void {
       event.preventDefault()
       return
     }
+    if (ui.get().composer) {
+      ui.set({ composer: false })
+      event.preventDefault()
+      return
+    }
     if (ui.get().reader) {
       ui.set({ reader: null })
       event.preventDefault()
       return
     }
-    enhancer?.clearFocus()
+    runtime.api?.clearFocus()
     return
   }
 
@@ -176,25 +222,25 @@ function onKeydown(event: KeyboardEvent): void {
       event.preventDefault()
       break
     case 'j':
-      enhancer?.focusRelative(1)
+      runtime.api?.focusRelative(1)
       event.preventDefault()
       break
     case 'k':
-      enhancer?.focusRelative(-1)
+      runtime.api?.focusRelative(-1)
       event.preventDefault()
       break
     case 'Enter':
-      if (document.querySelector('[data-mist-focus]')) {
+      if (document.querySelector('[data-mist-focus], .mf-card[data-focus="true"]')) {
         openReader()
         event.preventDefault()
       }
       break
     case 's':
-      enhancer?.saveFocused()
+      runtime.api?.saveFocused()
       event.preventDefault()
       break
     case 'c':
-      if (!enhancer?.compose()) toast('这页没有发博输入框', 'info')
+      if (!runtime.api?.compose()) toast('这页没有发博输入框', 'info')
       event.preventDefault()
       break
     case 'f':
@@ -206,7 +252,7 @@ function onKeydown(event: KeyboardEvent): void {
       event.preventDefault()
       break
     case 'o':
-      if (!enhancer?.openFocused()) toast('先把光标停在一张卡片上', 'info')
+      if (!runtime.api?.openFocused()) toast('先把光标停在一张卡片上', 'info')
       event.preventDefault()
       break
     case 'g':
@@ -230,7 +276,7 @@ function onKeydown(event: KeyboardEvent): void {
 /** One gentle note when the timeline markup is not what we know. */
 function watchCompatibility(): void {
   window.setTimeout(() => {
-    if (!settings.layout) return
+    if (!settings.layout || dataMode) return
     if (document.querySelector('.card-wrap, [action-type="feed_list_item"]')) return
     if (document.querySelector('.mist-compat-note')) return
     const note = document.createElement('div')
@@ -259,33 +305,20 @@ async function main(): Promise<void> {
   enhancer = createEnhancer(() => settings)
   runtime.api = enhancer
 
-  if (settings.layout) {
-    const stage = createStage()
-    if (stage.organize()) {
-      stageHandle = stage
-    }
-  }
+  if (settings.layout) enterLayout(true)
 
   onSettingsChange((next) => {
     const layoutChanged = next.layout !== settings.layout
     settings = next
     applySettings(next)
     applySettings(next, host)
-    if (layoutChanged) {
-      if (next.layout && !stageHandle) {
-        const stage = createStage()
-        if (stage.organize()) stageHandle = stage
-      } else if (!next.layout && stageHandle) {
-        stageHandle.destroy()
-        stageHandle = null
-      }
-    }
+    if (layoutChanged) enterLayout(next.layout)
     enhancer?.refresh(next)
   })
 
   // Overlays own the page while they are open.
   ui.subscribe((state) => {
-    const locked = state.palette || state.sheet || Boolean(state.reader)
+    const locked = state.palette || state.sheet || state.composer || Boolean(state.reader)
     document.body?.classList.toggle('mist-scroll-lock', locked)
   })
 
@@ -304,6 +337,7 @@ async function main(): Promise<void> {
   window.addEventListener(
     'pagehide',
     () => {
+      unmountFeed()
       enhancer?.destroy()
       stageHandle?.destroy()
     },

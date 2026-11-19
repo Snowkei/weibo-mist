@@ -1,28 +1,30 @@
 # 架构
 
-Mist 的体积小（content 120 kB，含 Preact 与全部样式）来自一个决定：**不去重写微博**。
-
 [xb](https://github.com/nnecec/xb) 的做法是接管整个站点——把页面清空、用微博内部接口取数据、再用自己
-的组件重画整站。这条路能做得更漂亮，但代价是：每一个微博的新功能（投票、直播、长文编辑器、@ 列表、
-消息中心）都要重写一遍，而且登录态、埋点、风控都在和你作对。
+的组件重画整站。0.3 之后 Mist 在首页走的正是这条路：**数据来自微博，页面由我们画**。
 
-Mist 走中间那条路：**微博的 DOM 是事实来源，Mist 重新组织它的版式。**
+区别在于范围。整站重写的代价是：每一个微博的新功能（投票、直播、长文编辑器、@ 列表、消息中心）都要
+重写一遍，而且登录态、埋点、风控都在和你作对。所以 Mist 只把这条路用在**有数据模型的地方**——首页
+时间线、热搜、发微博、点赞——其余路由仍然用 0.2 的结构式接管：把原生列表搬进 Mist 的列，页面其余部分
+按结构隐藏。两层叠起来，才不会在微博改版的第二天变成一张白纸。
 
-具体做法是「结构式接管」而不是「逐类名改皮肤」：先按结构找到时间线容器（不依赖它的 id 或 class），
-把它搬进 Mist 自己的列，再把页面其余部分隐藏。这样即使微博换了一套类名，接管依旧成立——而只改皮肤的
-方案会在微博改版的那天静默失效，变成一个浮在原生页面上的壳。
+一句话：**首页是 Mist 的应用，其他页面是 Mist 接管后的微博。**
 
 ```
                        ┌───────────────────────────────┐
    weibo.com 文档 ─────▶│ content.js（孤立世界）         │
                        │  ├─ Shell（Shadow DOM 外壳）   │
-                       │  ├─ enhancer（观察 + 打标 + 过滤）│
+                       │  ├─ timeline.tsx（自绘时间线） │
+                       │  ├─ feed.ts / api.ts（数据层） │
+                       │  ├─ enhancer（原生卡片打标）   │
                        │  ├─ 命令面板 / 设置抽屉 / 阅读器 │
                        │  └─ 键盘、快捷键、滚动记忆      │
                        └───────────┬───────────────────┘
                                    │ window.postMessage
                        ┌───────────▼───────────────────┐
                        │ main-world.js（页面主世界）     │
+                       │  ├─ /ajax/feed/*（时间线）      │
+                       │  ├─ /ajax/statuses/*（赞/发博） │
                        │  ├─ /ajax/side/hotSearch       │
                        │  ├─ /ajax/profile/info         │
                        │  └─ 自动播放兜底                │
@@ -33,7 +35,31 @@ Mist 走中间那条路：**微博的 DOM 是事实来源，Mist 重新组织它
                        └───────────────────────────────┘
 ```
 
-## 五层职责
+### 数据通路（0.3）
+
+```
+content script (isolated)            page (MAIN world)
+────────────────────────             ─────────────────
+timeline.tsx  组件与交互
+   ↓
+feed.ts       适配 + 端点常量
+   ↓
+api.ts        postMessage  {kind:'api', method, path, params|body, id}
+   ↓                                   ↓
+                    main-world/index.ts  fetch(credentials:'include',
+                                         X-XSRF-TOKEN from cookie)
+   ↓                                   ↓
+            {kind:'reply', id, ok, payload}
+```
+
+- **唯一契约是 `Settings`**：数据模式的渲染只读组件状态，不读 `data-mist-*`；属性只用于页面级开关
+  （主题、专注模式、接管开关），因此两套渲染路径不会互相污染。
+- **降级顺序**：接口失败 → 卡片区显示「重新读取」；首页之外的路由 → 原生列表接管（0.2 的 `stage.ts`）；
+  没有时间线且没有数据 → 只留左侧导航（`data-mist-feedless`）。
+- **不做的事**：不缓存微博数据到扩展存储、不把微博的 JSON 转存到第三方、不在后台页面发请求
+  （后台脚本只负责转发快捷键，没有网络权限）。
+
+## 六层职责
 
 ### 1. `src/content/index.ts` — 装配
 
@@ -43,7 +69,16 @@ Mist 走中间那条路：**微博的 DOM 是事实来源，Mist 重新组织它
   元素才接收点击。这样它既能盖住整页，又不会挡住微博自己的卡片。
 - `pagehide` 时彻底拆除（`destroy()`），避免 SPA 导航堆叠多份外壳。
 
-### 2. `src/content/stage.ts` — 接管层
+### 2. `src/content/timeline.tsx` + `feed.ts` + `api.ts` — 首页的数据模式
+
+- `timeline.tsx`：`mountFeed(container)` 把组件树渲染进 `#mist-feed`；`createFeedApi()` 把键盘与命令面板
+  接到数据上（`focusRelative` / `readerFromFocus` / `saveFocused` / `compose`）。
+- `feed.ts`：端点常量、`adaptStatus()`（把 `/ajax/feed/*` 的原始 status 归一成 `Post`）、`sanitize()`
+  （正文只留 `a` / `img` / `br`，其余标签退化成文本）、`loadFeed()` 翻页、`setLike()`、`publish()`。
+- `api.ts`：`postMessage` 请求与 12s 超时；`main-world/index.ts` 在页面世界 `fetch`，带 cookie 与
+  `X-XSRF-TOKEN`，所以请求就是微博自己会发的那个请求。
+
+### 3. `src/content/stage.ts` — 接管层
 
 这段是 v0.2 的核心，只做三件事：
 
@@ -59,7 +94,7 @@ Mist 走中间那条路：**微博的 DOM 是事实来源，Mist 重新组织它
 `unstage()`——移除全部标记、把列表还回原父节点、给页面让路。所以「消息」「设置」这类没有时间线的路由
 不会变成空白页，只是没有中央列（`data-mist-feedless`）。
 
-### 3. `src/content/enhance.ts` — 增强层
+### 4. `src/content/enhance.ts` — 增强层
 
 不做渲染，只做三件事：
 
@@ -72,13 +107,13 @@ Mist 走中间那条路：**微博的 DOM 是事实来源，Mist 重新组织它
 
 统计（总数 / 可见 / 已过滤 / 重复）随扫描写进 `ui.stats`，右栏那块面板就是它的投影。
 
-### 4. `src/main-world/index.ts` — 页面主世界
+### 5. `src/main-world/index.ts` — 页面主世界
 
 有些事孤立世界做不到：读 `weibo.com` 的私有接口要带页面 cookie 与同源 `fetch`。所以这个脚本以
-`world: "MAIN"` 注入，只服务两个 `postMessage` 请求（热搜、账号），外加一个 MutationObserver 用来兜底
-暂停自动播放的视频。**它不碰 DOM 结构，也不改页面数据。**
+`world: "MAIN"` 注入，只做两件事：执行 `{kind:'api'}` 请求（GET/POST，POST 带 `XSRF-TOKEN`），以及
+一个 MutationObserver 兜底暂停自动播放的视频。**它不碰 DOM 结构，也不改页面数据。**
 
-### 5. `src/background/index.ts` — 44 行
+### 6. `src/background/index.ts` — 44 行
 
 工具栏按钮与 `⌘⇧K` 都只是 `sendToActiveTab({type:'mist:toggle-palette'})`。没有常驻状态，
 没有网络请求，service worker 随时可以被回收。
@@ -86,7 +121,7 @@ Mist 走中间那条路：**微博的 DOM 是事实来源，Mist 重新组织它
 ## 设置是唯一的数据契约
 
 ```
-Settings ──settingsToAttributes()──▶ html[data-mist-theme] html[data-mist-glass] ... 14 个属性
+Settings ──settingsToAttributes()──▶ html[data-mist-theme] html[data-mist-glass] ... 15 个属性
          └─settingsToVariables()───▶ --mist-reading-size / --mist-reading-leading
 ```
 

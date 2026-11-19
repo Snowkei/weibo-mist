@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mist · 数据模式 fixture</title>
+    <link rel="stylesheet" href="weibo.css" />
+    <style>
+      body {
+        margin: 0;
+        font: 14px/1.6 -apple-system, "PingFang SC", sans-serif;
+      }
+      .native-shell {
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- A native shell that must disappear: data mode hides the page, it does
+         not move its list into our column. -->
+    <header class="native-shell" id="fake-header">原生顶栏</header>
+    <aside class="native-shell" id="fake-side">原生二级栏</aside>
+    <div class="native-shell" id="pl_feedlist_index">
+      <div class="card-wrap" action-type="feed_list_item">
+        <div class="WB_info">原生的那一条（不该出现）</div>
+      </div>
+    </div>
+    <aside class="native-shell" id="fake-right">原生右栏</aside>
+
+    <script>
+      // Screenshots need a theme without opening the settings sheet: the content
+      // script reads `mist.settings` from localStorage when there is no chrome.*.
+      const params = new URLSearchParams(location.search)
+      if (params.get('theme')) {
+        let current = {}
+        try {
+          current = JSON.parse(localStorage.getItem('mist.settings') ?? '{}')
+        } catch {
+          current = {}
+        }
+        localStorage.setItem('mist.settings', JSON.stringify({ ...current, theme: params.get('theme') }))
+      }
+    </script>
+    <script>
+      // The page world's fetch is what the MAIN-world bridge calls. Stub it with
+      // canned JSON so the fixture exercises the real adapter + renderer.
+      const svg = (fill) =>
+        `data:image/svg+xml;utf8,` +
+        encodeURIComponent(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="${fill}"/></svg>`,
+        )
+
+      const user = (name, verified) => ({ screen_name: name, verified, avatar_large: '' })
+
+      const POSTS = [
+        {
+          id: 1001,
+          idstr: '1001',
+          mblogid: 'N1001',
+          created_at: 'Thu Nov 14 18:08:17 +0800 2024',
+          text: '第一条：信息过载从来不是「信息太多」，而是「筛子太粗」。',
+          user: user('海边', true),
+          attitudes_count: 316,
+          comments_count: 42,
+          reposts_count: 18,
+          attitudes_status: 0,
+          source: 'iPhone 15 Pro',
+        },
+        {
+          id: 1002,
+          idstr: '1002',
+          mblogid: 'N1002',
+          created_at: 'Thu Nov 14 12:00:00 +0800 2024',
+          text: '今天发两张图，顺便 <a href="/n/hello">@雾港</a> 一下。',
+          user: user('雾港咖啡', false),
+          attitudes_count: 96,
+          comments_count: 8,
+          reposts_count: 3,
+          pic_ids: ['p1', 'p2'],
+          pic_infos: {
+            p1: { largest: { url: svg('#dde3ea') } },
+            p2: { largest: { url: svg('#efe3d8') } },
+          },
+          retweeted_status: {
+            id: 1003,
+            idstr: '1003',
+            mblogid: 'N1003',
+            created_at: 'Thu Nov 14 09:30:00 +0800 2024',
+            text: '被转发的原文在这里。',
+            user: user('林间笔记', false),
+            attitudes_count: 5,
+          },
+        },
+        {
+          id: 1004,
+          idstr: '1004',
+          mblogid: 'N1004',
+          created_at: 'Thu Nov 13 20:00:00 +0800 2024',
+          text: '长文开头：把手机架在树上拍了四十分钟，剪出十七秒。',
+          isLongText: true,
+          user: user('长文作者', false),
+          attitudes_count: 12,
+          comments_count: 1,
+          reposts_count: 0,
+        },
+      ]
+
+      const json = (body) => ({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify(body),
+        json: async () => body,
+      })
+
+      const realFetch = window.fetch.bind(window)
+      window.fetch = async (input, init) => {
+        const url = typeof input === 'string' ? input : input.url
+        if (url.includes('/ajax/feed/friendstimeline')) {
+          return json({ data: { list: POSTS, since_id: 0 }, max_id: 0 })
+        }
+        if (url.includes('/ajax/feed/unreadfriendstimeline')) {
+          return json({ data: { list: POSTS, since_id: 0 }, max_id: 0 })
+        }
+        if (url.includes('/ajax/profile/info')) {
+          return json({ data: { user: { screen_name: '雾里看花', idstr: '42' } } })
+        }
+        if (url.includes('/ajax/side/hotSearch')) {
+          return json({ realtime: [{ word: '把微博重画成一张安静的纸', num: 4120000 }] })
+        }
+        if (url.includes('/ajax/statuses/longtext')) {
+          return json({ data: { longTextContent_raw: '长文的完整内容已经补全。' } })
+        }
+        return realFetch(input, init)
+      }
+    </script>
+    <script src="main-world.js"></script>
+    <script src="content.js"></script>
+  </body>
+</html>
