@@ -256,6 +256,15 @@ applySettings({
 })
 document.documentElement.setAttribute('data-mist-booted', 'true')
 
+// The real enhancer mirrors the active view onto <html>; the demo has no
+// enhancer, so it mirrors the same attribute itself — otherwise the 视图 tabs
+// would look interactive while filtering nothing.
+const applyView = (view: string) => {
+  document.documentElement.setAttribute('data-mist-view', view)
+}
+ui.subscribe((state) => applyView(state.view))
+applyView(ui.get().view)
+
 const visible = POSTS.filter((post) => !post.ad && !post.suggested).length
 ui.set({
   stats: { total: POSTS.length, visible, filtered: POSTS.length - visible, duplicates: 0 },
