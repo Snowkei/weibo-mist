@@ -103,22 +103,40 @@ html[data-mist] [class*='SideBar_'] {
    We do not replace the DOM, we re-dress it: same nodes, same handlers.
    ========================================================================== */
 
+/* Every native wrapper becomes a plain 624px column with no margins of its
+   own. On weibo these containers are nested (frame > homeFeed > feedlist), so
+   the offset must be applied to exactly one of them — otherwise the column
+   walks off to the right by one rail width per level. */
 html[data-mist][data-mist-layout='true'] .WB_frame,
+html[data-mist][data-mist-layout='true'] .woo-frame,
 html[data-mist][data-mist-layout='true'] #pl_content_homeFeed,
 html[data-mist][data-mist-layout='true'] #pl_feedlist_index,
-html[data-mist][data-mist-layout='true'] .WB_main,
-html[data-mist][data-mist-layout='true'] .woo-frame {
-  width: var(--mist-feed-width) !important;
+html[data-mist][data-mist-layout='true'] .WB_main {
+  width: min(100%, var(--mist-feed-width)) !important;
   max-width: var(--mist-feed-width) !important;
-  margin-inline-start: calc(var(--mist-feed-left) + var(--mist-feed-shift)) !important;
-  margin-inline-end: auto !important;
+  margin-inline-start: 0 !important;
+  margin-inline-end: 0 !important;
   padding-inline: 0 !important;
   background: transparent !important;
 }
 
-/* The feed head is ours; native content starts underneath it. */
-html[data-mist][data-mist-layout='true'] #pl_content_homeFeed,
-html[data-mist][data-mist-layout='true'] #pl_feedlist_index {
+/* The outermost wrapper carries the offset. */
+html[data-mist][data-mist-layout='true'] .WB_frame,
+html[data-mist][data-mist-layout='true'] .woo-frame {
+  margin-inline-start: calc(var(--mist-feed-left) + var(--mist-feed-shift)) !important;
+}
+
+/* Pages without a frame wrapper: the feed container is the outermost. */
+html[data-mist][data-mist-layout='true'] body > #pl_content_homeFeed,
+html[data-mist][data-mist-layout='true'] body > .WB_main,
+html[data-mist][data-mist-layout='true'] body > #pl_feedlist_index {
+  margin-inline-start: calc(var(--mist-feed-left) + var(--mist-feed-shift)) !important;
+}
+
+/* The feed head is ours; the native list starts underneath it. Only one of
+   these is ever present, and padding on both would double the gap. */
+html[data-mist][data-mist-layout='true'] #pl_feedlist_index,
+html[data-mist][data-mist-layout='true'] .WB_main {
   padding-block-start: calc(var(--mist-header-height) + var(--mist-space-4) * 2) !important;
 }
 

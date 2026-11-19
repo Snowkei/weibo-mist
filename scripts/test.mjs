@@ -96,9 +96,10 @@ try {
 
   process.stdout.write('\nattribute contract (settings → CSS)\n')
 
-  test('every switch has a data-mist mirror', () => {
+  test('the page skin gate and every switch has a data-mist mirror', () => {
     const attrs = settingsToAttributes(DEFAULT_SETTINGS)
     for (const key of [
+      'data-mist',
       'data-mist-theme',
       'data-mist-tint',
       'data-mist-glass',

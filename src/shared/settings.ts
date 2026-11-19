@@ -139,6 +139,9 @@ export function normalizeSettings(raw: unknown): Settings {
 /** The attribute contract between settings and CSS. */
 export function settingsToAttributes(s: Settings): Record<string, string> {
   return {
+    // The bare flag is the gate for the whole page skin: every rule in
+    // weibo.css hangs off `html[data-mist]`.
+    'data-mist': 'true',
     'data-mist-theme': resolveTheme(s.theme),
     'data-mist-tint': s.tint,
     'data-mist-glass': s.glass,

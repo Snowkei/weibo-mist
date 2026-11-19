@@ -20,9 +20,15 @@ const SCROLL_PREFIX = 'mist.scroll:'
 let enhancer: Enhancer | null = null
 let settings: Settings
 
+/**
+ * The enhancer is meant for weibo.com only. `?mist-dev` on a loopback host is
+ * the one exception: it lets `scripts/smoke.mjs` drive the real bundle against
+ * a locally mirrored timeline, without ever touching the production site.
+ */
 function isWeibo(): boolean {
   const host = location.hostname
-  return host === 'weibo.com' || host.endsWith('.weibo.com')
+  if (host === 'weibo.com' || host.endsWith('.weibo.com')) return true
+  return /^(localhost|127\.0\.0\.1|\[::1\])$/.test(host) && location.search.includes('mist-dev')
 }
 
 function whenBody(): Promise<HTMLElement> {

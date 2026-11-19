@@ -28,7 +28,13 @@
 - **工程**：esbuild 四路构建（约 10ms）、`manifest.json` 由脚本生成、18 条契约测试、无头截图脚本、
   release 打包脚本、GitHub Actions。
 
-### 已知限制
+#### 修复（发版前）
+
+- 页面皮肤从未生效：`settingsToAttributes()` 少了裸 `data-mist` 属性，而 `weibo.css` 的所有规则都挂在 `html[data-mist]` 上。
+- 信息流列被嵌套容器推走：`.WB_frame`、`#pl_content_homeFeed`、`#pl_feedlist_index` 逐层加偏移导致累积，现改为只给最外层容器偏移，其余归零。
+- `?mist-dev` 开发开关：运行在 `localhost` / `127.0.0.1` 时可用本地镜像页面驱动真实的 content script（`npm run smoke`）。
+
+## 已知限制
 
 - 只支持桌面端；窄于 1024px 时隐藏右栏。
 - 依赖微博网页版的类名与属性（`.card-wrap`、`action-type` 等），改版时需要更新选择器表。
